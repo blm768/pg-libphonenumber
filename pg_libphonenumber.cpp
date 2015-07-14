@@ -51,8 +51,10 @@ extern "C" {
 		PhoneNumber *number;
 
 		number = (PhoneNumber*)palloc0(sizeof(PhoneNumber));
+		//TODO: can this be removed? (palloc normally handles this, right?)
 		if(number == nullptr) {
 			reportOutOfMemory();
+			PG_RETURN_NULL();
 		}
 
 		try {
@@ -64,6 +66,11 @@ extern "C" {
 				//The number was parsed correctly; return it.
 				PG_RETURN_POINTER(number);
 				break;
+			case PNU::NOT_A_NUMBER:
+				reportParsingError(str, "String does not appear to contain a phone number.");
+			case PNU::INVALID_COUNTRY_CODE_ERROR:
+				reportParsingError(str, "Invalid country code");
+			//TODO: handle more error cases specifically.
 			default:
 				//We have some generic parsing error.
 				reportParsingError(str);

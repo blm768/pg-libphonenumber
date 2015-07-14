@@ -22,7 +22,7 @@ void reportOutOfMemory() {
 }
 
 void reportParsingError(const char* phone_number, const char* msg = "") {
-	ereport(ERROR, 
+	ereport(ERROR,
 			(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("unable to parse '%s' as a phone number", phone_number),
 			 errdetail("%s", msg)));
@@ -31,7 +31,8 @@ void reportParsingError(const char* phone_number, const char* msg = "") {
 void reportGenericError(std::exception& exception) {
 	ereport(ERROR,
 			(errcode(ERRCODE_EXTERNAL_ROUTINE_INVOCATION_EXCEPTION),
-			 errmsg("%s", exception.what())));
+			 errmsg("%s", typeid(exception).name()),
+			 errdetail("%s", exception.what())));
 }
 
 //TODO: handle non-exception thrown types? (shouldn't happen, but you never know...)
@@ -59,7 +60,7 @@ extern "C" {
 
 		try {
 			using PNU = i18n::phonenumbers::PhoneNumberUtil;
-			PNU::ErrorType error;	
+			PNU::ErrorType error;
 			error = phoneUtil->Parse(str, "US", number);
 			switch(error) {
 			case PNU::NO_PARSING_ERROR:
@@ -97,6 +98,8 @@ extern "C" {
 		PhoneNumber *number = (PhoneNumber*)PG_GETARG_POINTER(0);
 		std::string formatted;
 		char *result;
+
+		formatted.resize(20, ' ');
 
 		try {
 			phoneUtil->Format(*number, PhoneNumberUtil::INTERNATIONAL, &formatted);

@@ -99,8 +99,6 @@ extern "C" {
 		std::string formatted;
 		char *result;
 
-		formatted.resize(20, ' ');
-
 		try {
 			phoneUtil->Format(*number, PhoneNumberUtil::INTERNATIONAL, &formatted);
 		} catch(std::bad_alloc& e) {

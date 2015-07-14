@@ -1,5 +1,5 @@
-MODULE_big := pg_libphonenumber
-OBJS := pg_libphonenumber.o
+MODULE_big := pg-libphonenumber
+OBJS := pg-libphonenumber.o
 PG_CPPFLAGS := -fPIC -std=c++11
 SHLIB_LINK := -lphonenumber -lstdc++
 

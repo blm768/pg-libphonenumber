@@ -14,6 +14,21 @@ using namespace i18n::phonenumbers;
 
 PhoneNumberUtil *phoneUtil = PhoneNumberUtil::GetInstance();
 
+//Utility functions for error handling
+
+void reportOutOfMemory() {
+	ereport(ERROR,
+		(errcode(ERRCODE_OUT_OF_MEMORY)));
+}
+
+void reportGenericError(std::exception& exception) {
+	ereport(ERROR,
+			(errcode(ERRCODE_EXTERNAL_ROUTINE_INVOCATION_EXCEPTION),
+			 errmsg("%s", exception.what())));
+}
+
+//TODO: handle non-exception thrown types? (shouldn't happen, but you never know...)
+
 extern "C" {
 	#ifdef PG_MODULE_MAGIC
 		PG_MODULE_MAGIC;
@@ -29,16 +44,25 @@ extern "C" {
 		PhoneNumber *number;
 
 		number = (PhoneNumber*)palloc0(sizeof(PhoneNumber));
+		if(number == nullptr) {
+			reportOutOfMemory();
+		}
 
 		try {
-			phoneUtil->Parse(str, "US", number);
+			PhoneNumberUtil::ErrorType error;	
+			error = phoneUtil->Parse(str, "US", number);
+			if(error == PhoneNumberUtil::NO_PARSING_ERROR) {
+				//The number was parsed correctly; return it.
+				PG_RETURN_POINTER(number);
+			}
+			//TODO: handle errors.
+		} catch(std::bad_alloc& e) {
+			reportOutOfMemory();
+		} catch (std::exception& e) {
+			reportGenericError(e);
 		}
-		catch (std::exception e) {
-			//TODO: implement.
 
-		}
-
-		PG_RETURN_POINTER(number);
+		PG_RETURN_NULL();
 	}
 
 	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_out);
@@ -58,6 +82,9 @@ extern "C" {
 		}
 
 		size_t len = formatted.length();
+		ereport(INFO,
+				(errcode(ERRCODE_SUCCESSFUL_COMPLETION),
+				errmsg("Length: %zu", len)));
 		result = (char*)palloc(len + 1);
 		//TODO: test allocation.
 		memcpy(result, formatted.data(), len);

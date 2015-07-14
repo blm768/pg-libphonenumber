@@ -68,14 +68,15 @@ extern "C" {
 				break;
 			case PNU::NOT_A_NUMBER:
 				reportParsingError(str, "String does not appear to contain a phone number.");
+				break;
 			case PNU::INVALID_COUNTRY_CODE_ERROR:
 				reportParsingError(str, "Invalid country code");
+				break;
 			//TODO: handle more error cases specifically.
 			default:
 				//We have some generic parsing error.
 				reportParsingError(str);
 			}
-			//TODO: handle errors.
 			//TODO: check number validity.
 		} catch(std::bad_alloc& e) {
 			reportOutOfMemory();
@@ -83,6 +84,7 @@ extern "C" {
 			reportGenericError(e);
 		}
 
+		//If we get here, we couldn't return a valid number.
 		PG_RETURN_NULL();
 	}
 

@@ -31,7 +31,7 @@ void reportParsingError(const char* phone_number, const char* msg = "") {
 void reportGenericError(std::exception& exception) {
 	ereport(ERROR,
 			(errcode(ERRCODE_EXTERNAL_ROUTINE_INVOCATION_EXCEPTION),
-			 errmsg("%s", typeid(exception).name()),
+			 errmsg("C++ exception: %s", typeid(exception).name()),
 			 errdetail("%s", exception.what())));
 }
 

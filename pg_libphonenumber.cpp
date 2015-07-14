@@ -21,6 +21,13 @@ void reportOutOfMemory() {
 		(errcode(ERRCODE_OUT_OF_MEMORY)));
 }
 
+void reportParsingError(const char* phone_number, const char* msg = "") {
+	ereport(ERROR, 
+			(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			 errmsg("unable to parse '%s' as a phone number", phone_number),
+			 errdetail("%s", msg)));
+}
+
 void reportGenericError(std::exception& exception) {
 	ereport(ERROR,
 			(errcode(ERRCODE_EXTERNAL_ROUTINE_INVOCATION_EXCEPTION),
@@ -40,7 +47,7 @@ extern "C" {
 	Datum
 	phone_number_in(PG_FUNCTION_ARGS)
 	{
-		char *str = PG_GETARG_CSTRING(0);
+		const char *str = PG_GETARG_CSTRING(0);
 		PhoneNumber *number;
 
 		number = (PhoneNumber*)palloc0(sizeof(PhoneNumber));
@@ -49,13 +56,20 @@ extern "C" {
 		}
 
 		try {
-			PhoneNumberUtil::ErrorType error;	
+			using PNU = i18n::phonenumbers::PhoneNumberUtil;
+			PNU::ErrorType error;	
 			error = phoneUtil->Parse(str, "US", number);
-			if(error == PhoneNumberUtil::NO_PARSING_ERROR) {
+			switch(error) {
+			case PNU::NO_PARSING_ERROR:
 				//The number was parsed correctly; return it.
 				PG_RETURN_POINTER(number);
+				break;
+			default:
+				//We have some generic parsing error.
+				reportParsingError(str);
 			}
 			//TODO: handle errors.
+			//TODO: check number validity.
 		} catch(std::bad_alloc& e) {
 			reportOutOfMemory();
 		} catch (std::exception& e) {
@@ -77,16 +91,23 @@ extern "C" {
 
 		try {
 			phoneUtil->Format(*number, PhoneNumberUtil::INTERNATIONAL, &formatted);
-		} catch (std::exception e) {
-			//TODO: implement.
+		} catch(std::bad_alloc& e) {
+			reportOutOfMemory();
+		} catch (std::exception& e) {
+			reportGenericError(e);
 		}
 
+		//Copy the formatted number to a C-style string.
+		//We must use the PostgreSQL allocator, not new/malloc.
 		size_t len = formatted.length();
 		ereport(INFO,
 				(errcode(ERRCODE_SUCCESSFUL_COMPLETION),
 				errmsg("Length: %zu", len)));
 		result = (char*)palloc(len + 1);
-		//TODO: test allocation.
+		if(result == nullptr) {
+			reportOutOfMemory();
+			PG_RETURN_NULL();
+		}
 		memcpy(result, formatted.data(), len);
 		result[len] = '\0';
 
@@ -102,6 +123,7 @@ extern "C" {
 		StringInfo buf = (StringInfo)PG_GETARG_POINTER(0);
 		PhoneNumber *result;
 
+		//TODO: error handling?
 		result = (PhoneNumber*)palloc0(sizeof(PhoneNumber));
 		result->set_country_code(pq_getmsgint(buf, 4));
 		result->set_national_number(pq_getmsgint64(buf));

@@ -35,7 +35,14 @@ void reportGenericError(std::exception& exception) {
 			 errdetail("%s", exception.what())));
 }
 
+void logInfo(const char* msg) {
+	ereport(INFO,
+			(errcode(ERRCODE_SUCCESSFUL_COMPLETION),
+			errmsg("%s", msg)));
+}
+
 //TODO: handle non-exception thrown types? (shouldn't happen, but you never know...)
+//TODO: check null args? (PG_ARGISNULL) Make non-strict?
 
 extern "C" {
 	#ifdef PG_MODULE_MAGIC
@@ -48,17 +55,18 @@ extern "C" {
 	Datum
 	phone_number_in(PG_FUNCTION_ARGS)
 	{
-		const char *str = PG_GETARG_CSTRING(0);
-		PhoneNumber *number;
-
-		number = (PhoneNumber*)palloc0(sizeof(PhoneNumber));
-		//TODO: can this be removed? (palloc normally handles this, right?)
-		if(number == nullptr) {
-			reportOutOfMemory();
-			PG_RETURN_NULL();
-		}
-
 		try {
+			const char *str = PG_GETARG_CSTRING(0);
+			PhoneNumber *number;
+
+			number = (PhoneNumber*)palloc0(sizeof(PhoneNumber));
+			//TODO: can this be removed? (palloc normally handles this, right?)
+			if(number == nullptr) {
+				reportOutOfMemory();
+				PG_RETURN_NULL();
+			}
+			new(number) PhoneNumber();
+
 			using PNU = i18n::phonenumbers::PhoneNumberUtil;
 			PNU::ErrorType error;
 			error = phoneUtil->Parse(str, "US", number);
@@ -81,7 +89,7 @@ extern "C" {
 			//TODO: check number validity.
 		} catch(std::bad_alloc& e) {
 			reportOutOfMemory();
-		} catch (std::exception& e) {
+		} catch(std::exception& e) {
 			reportGenericError(e);
 		}
 
@@ -95,37 +103,36 @@ extern "C" {
 	Datum
 	phone_number_out(PG_FUNCTION_ARGS)
 	{
-		PhoneNumber *number = (PhoneNumber*)PG_GETARG_POINTER(0);
-		std::string formatted;
-		char *result;
-
 		try {
+			const PhoneNumber *number = (PhoneNumber*)PG_GETARG_POINTER(0);
+			std::string formatted;
+			char *result;
+
 			phoneUtil->Format(*number, PhoneNumberUtil::INTERNATIONAL, &formatted);
+
+			//Copy the formatted number to a C-style string.
+			//We must use the PostgreSQL allocator, not new/malloc.
+			size_t len = formatted.length();
+			result = (char*)palloc(len + 1);
+			if(result == nullptr) {
+				reportOutOfMemory();
+				PG_RETURN_NULL();
+			}
+			memcpy(result, formatted.data(), len);
+			result[len] = '\0';
+
+			PG_RETURN_CSTRING(result);
 		} catch(std::bad_alloc& e) {
 			reportOutOfMemory();
 		} catch (std::exception& e) {
 			reportGenericError(e);
 		}
-
-		//Copy the formatted number to a C-style string.
-		//We must use the PostgreSQL allocator, not new/malloc.
-		size_t len = formatted.length();
-		ereport(INFO,
-				(errcode(ERRCODE_SUCCESSFUL_COMPLETION),
-				errmsg("Length: %zu", len)));
-		result = (char*)palloc(len + 1);
-		if(result == nullptr) {
-			reportOutOfMemory();
-			PG_RETURN_NULL();
-		}
-		memcpy(result, formatted.data(), len);
-		result[len] = '\0';
-
-		PG_RETURN_CSTRING(result);
+		PG_RETURN_NULL();
 	}
 
 	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_recv);
 
+	//TODO: handle leading zeroes?
 	PGDLLEXPORT
 	Datum
 	phone_number_recv(PG_FUNCTION_ARGS)

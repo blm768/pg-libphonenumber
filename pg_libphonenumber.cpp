@@ -72,7 +72,7 @@ void logInfo(const char* msg) {
  */
 
 //Internal function used by phone_number_in and parse_phone_number
-PhoneNumber* parsePhoneNumber(const char* number_str, const char* country) throw () {
+PhoneNumber* parsePhoneNumber(const char* number_str, const char* country) {
 	PhoneNumber *number;
 
 	number = (PhoneNumber*)palloc0(sizeof(PhoneNumber));

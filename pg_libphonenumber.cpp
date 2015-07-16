@@ -1,7 +1,6 @@
 #include <exception>
 #include <string>
 
-#define I18N_PHONENUMBERS_USE_BOOST
 #include "phonenumbers/phonenumberutil.h"
 
 extern "C" {

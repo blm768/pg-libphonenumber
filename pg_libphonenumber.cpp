@@ -9,9 +9,11 @@ extern "C" {
 	#include "fmgr.h"
 }
 
+#include "short_phone_number.h"
+
 using namespace i18n::phonenumbers;
 
-static thread_local PhoneNumberUtil *phoneUtil = PhoneNumberUtil::GetInstance();
+static const PhoneNumberUtil* const phoneUtil = PhoneNumberUtil::GetInstance();
 
 static const char* parseErrorMessage(PhoneNumberUtil::ErrorType error) {
 	using PNU = i18n::phonenumbers::PhoneNumberUtil;

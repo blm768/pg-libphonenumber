@@ -4,7 +4,7 @@ extension_script := $(EXTENSION)--$(version).sql
 DATA_built := $(extension_script)
 
 MODULE_big := pg_libphonenumber
-OBJS := pg_libphonenumber.o
+OBJS := pg_libphonenumber.o short_phone_number.o
 PG_CPPFLAGS := -fPIC -std=c++11 -g
 SHLIB_LINK := -lphonenumber -lstdc++
 

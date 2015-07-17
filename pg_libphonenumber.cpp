@@ -11,57 +11,48 @@ extern "C" {
 
 using namespace i18n::phonenumbers;
 
-PhoneNumberUtil *phoneUtil = PhoneNumberUtil::GetInstance();
+static thread_local PhoneNumberUtil *phoneUtil = PhoneNumberUtil::GetInstance();
 
-//Raised when a phone number can't be parsed
-class ParseException : std::exception {
-	public:
-	ParseException(PhoneNumberUtil::ErrorType et) : error_type(et) {}
+static const char* parseErrorMessage(PhoneNumberUtil::ErrorType error) {
+	using PNU = i18n::phonenumbers::PhoneNumberUtil;
+	switch(error) {
+	case PNU::NO_PARSING_ERROR:
+		return "Parsed successfully";
+	case PNU::NOT_A_NUMBER:
+		return "String does not appear to contain a phone number.";
+	case PNU::INVALID_COUNTRY_CODE_ERROR:
+		return "Invalid country code";
+	//TODO: handle more error cases specifically.
+	default:
+		//We have some generic parsing error.
+		return "Unable to parse number";
+	}
+}
 
-	const char* what() const throw() override {
-		using PNU = i18n::phonenumbers::PhoneNumberUtil;
-		switch(error_type) {
-		case PNU::NO_PARSING_ERROR:
-			//This case shouldn't occur in correctly-functioning code.
-			assert(0);
-			return "Parsed successfully";
-		case PNU::NOT_A_NUMBER:
-			return "String does not appear to contain a phone number.";
-		case PNU::INVALID_COUNTRY_CODE_ERROR:
-			return "Invalid country code";
-		//TODO: handle more error cases specifically.
-		default:
-			//We have some generic parsing error.
-			return "Unrecognized number format";
-		}
-	};
+/*
+ * Utility functions for error handling
+ */
 
-	private:
-	PhoneNumberUtil::ErrorType error_type;
-};
-
-//Utility functions for error handling
-
-void reportOutOfMemory() {
+static void reportOutOfMemory() {
 	ereport(ERROR,
 		(errcode(ERRCODE_OUT_OF_MEMORY)));
 }
 
-void reportParseError(const char* phone_number, ParseException& exception) {
+static void reportParseError(const char* phone_number, PhoneNumberUtil::ErrorType err) {
 	ereport(ERROR,
 			(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("unable to parse '%s' as a phone number", phone_number),
-			 errdetail("%s", exception.what())));
+			 errdetail("%s", parseErrorMessage(err))));
 }
 
-void reportGenericError(std::exception& exception) {
+static void reportGenericError(std::exception& exception) {
 	ereport(ERROR,
 			(errcode(ERRCODE_EXTERNAL_ROUTINE_INVOCATION_EXCEPTION),
 			 errmsg("C++ exception: %s", typeid(exception).name()),
 			 errdetail("%s", exception.what())));
 }
 
-void logInfo(const char* msg) {
+static void logInfo(const char* msg) {
 	ereport(INFO,
 			(errcode(ERRCODE_SUCCESSFUL_COMPLETION),
 			errmsg("%s", msg)));
@@ -72,23 +63,33 @@ void logInfo(const char* msg) {
  */
 
 //Internal function used by phone_number_in and parse_phone_number
-PhoneNumber* parsePhoneNumber(const char* number_str, const char* country) {
-	PhoneNumber *number;
+PhoneNumber* parsePhoneNumber(const char* number_str, const char* country) throw() {
+	try {
+		PhoneNumber *number;
 
-	number = (PhoneNumber*)palloc0(sizeof(PhoneNumber));
-	//TODO: can this be removed? (palloc normally handles this, right?)
-	if(number == nullptr) {
-		throw std::bad_alloc();
-	}
-	new(number) PhoneNumber();
+		number = (PhoneNumber*)palloc0(sizeof(PhoneNumber));
+		//TODO: can this be removed? (palloc normally handles this, right?)
+		if(number == nullptr) {
+			throw std::bad_alloc();
+		}
+		new(number) PhoneNumber();
 
-	PhoneNumberUtil::ErrorType error;
-	error = phoneUtil->Parse(number_str, country, number);
-	if(error != PhoneNumberUtil::NO_PARSING_ERROR) {
-		throw ParseException(error);
+		PhoneNumberUtil::ErrorType error;
+		error = phoneUtil->Parse(number_str, country, number);
+		if(error == PhoneNumberUtil::NO_PARSING_ERROR) {
+			return number;
+		} else {
+			reportParseError(number_str, error);
+			return nullptr;
+		}
+		//TODO: check number validity.
+	} catch(std::bad_alloc& e) {
+		reportOutOfMemory();
+	} catch (std::exception& e) {
+		reportGenericError(e);
 	}
-	//TODO: check number validity.
-	return number;
+
+	return nullptr;
 }
 
 //TODO: handle non-exception thrown types? (shouldn't happen, but you never know...)
@@ -111,17 +112,12 @@ extern "C" {
 	{
 		const char *number_str = PG_GETARG_CSTRING(0);
 
-		try {
-			PG_RETURN_POINTER(parsePhoneNumber(number_str, "US"));
-		} catch(std::bad_alloc& e) {
-			reportOutOfMemory();
-		} catch(ParseException e) {
-			reportParseError(number_str, e);
-		} catch (std::exception& e) {
-			reportGenericError(e);
+		PhoneNumber* number = parsePhoneNumber(number_str, "US");
+		if(number) {
+			PG_RETURN_POINTER(number);
+		} else {
+			PG_RETURN_NULL();
 		}
-
-		PG_RETURN_NULL();
 	}
 	
 	PGDLLEXPORT PG_FUNCTION_INFO_V1(parse_phone_number);
@@ -133,17 +129,12 @@ extern "C" {
 		const char *number_str = PG_GETARG_CSTRING(0);
 		const char *country = PG_GETARG_CSTRING(1);
 
-		try {
-			PG_RETURN_POINTER(parsePhoneNumber(number_str, country));
-		} catch(std::bad_alloc& e) {
-			reportOutOfMemory();
-		} catch(ParseException e) {
-			reportParseError(number_str, e);
-		} catch (std::exception& e) {
-			reportGenericError(e);
+		PhoneNumber* number = parsePhoneNumber(number_str, country);
+		if(number) {
+			PG_RETURN_POINTER(number);
+		} else {
+			PG_RETURN_NULL();
 		}
-
-		PG_RETURN_NULL();
 	}
 
 	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_out);

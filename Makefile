@@ -10,7 +10,9 @@ MODULE_big := pg_libphonenumber
 OBJS := pg_libphonenumber.o short_phone_number.o
 PG_CPPFLAGS := -fPIC -std=c++11
 ifeq ($(CONFIG),debug)
-	PG_CPPFLAGS += -g
+	PG_CPPFLAGS += -g -Og
+else
+	PG_CPPFLAGS += -O3
 endif
 SHLIB_LINK := -lphonenumber -lstdc++
 

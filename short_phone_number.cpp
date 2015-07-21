@@ -3,7 +3,8 @@
 using namespace google::protobuf;
 using namespace i18n::phonenumbers;
 
-PhoneNumberTooLongException::PhoneNumberTooLongException(const PhoneNumber& number, const char* msg) : _number(number), std::runtime_error(msg) {};
+PhoneNumberTooLongException::PhoneNumberTooLongException(const PhoneNumber& number, const char* msg) :
+	_number(number), std::runtime_error(msg) {};
 
 const PhoneNumberUtil* const PhoneNumberTooLongException::phoneUtil = PhoneNumberUtil::GetInstance();
 

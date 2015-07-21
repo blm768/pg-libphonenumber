@@ -65,21 +65,22 @@ static void logInfo(const char* msg) {
  */
 
 //Internal function used by phone_number_in and parse_phone_number
-PhoneNumber* parsePhoneNumber(const char* number_str, const char* country) throw() {
+ShortPhoneNumber* parsePhoneNumber(const char* number_str, const char* country) throw() {
 	try {
-		PhoneNumber *number;
+		PhoneNumber number;
+		ShortPhoneNumber* short_number;
 
-		number = (PhoneNumber*)palloc0(sizeof(PhoneNumber));
+		short_number = (ShortPhoneNumber*)palloc0(sizeof(ShortPhoneNumber));
 		//TODO: can this be removed? (palloc normally handles this, right?)
-		if(number == nullptr) {
+		if(short_number == nullptr) {
 			throw std::bad_alloc();
 		}
-		new(number) PhoneNumber();
 
 		PhoneNumberUtil::ErrorType error;
-		error = phoneUtil->Parse(number_str, country, number);
+		error = phoneUtil->Parse(number_str, country, &number);
 		if(error == PhoneNumberUtil::NO_PARSING_ERROR) {
-			return number;
+			new(short_number) ShortPhoneNumber(number);
+			return short_number;
 		} else {
 			reportParseError(number_str, error);
 			return nullptr;
@@ -114,7 +115,7 @@ extern "C" {
 	{
 		const char *number_str = PG_GETARG_CSTRING(0);
 
-		PhoneNumber* number = parsePhoneNumber(number_str, "US");
+		ShortPhoneNumber* number = parsePhoneNumber(number_str, "US");
 		if(number) {
 			PG_RETURN_POINTER(number);
 		} else {
@@ -131,7 +132,7 @@ extern "C" {
 		const char *number_str = PG_GETARG_CSTRING(0);
 		const char *country = PG_GETARG_CSTRING(1);
 
-		PhoneNumber* number = parsePhoneNumber(number_str, country);
+		ShortPhoneNumber* number = parsePhoneNumber(number_str, country);
 		if(number) {
 			PG_RETURN_POINTER(number);
 		} else {
@@ -146,19 +147,18 @@ extern "C" {
 	phone_number_out(PG_FUNCTION_ARGS)
 	{
 		try {
-			const PhoneNumber *number = (PhoneNumber*)PG_GETARG_POINTER(0);
-			std::string formatted;
-			char *result;
+			const ShortPhoneNumber* short_number = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+			PhoneNumber number = *short_number;
 
-			phoneUtil->Format(*number, PhoneNumberUtil::INTERNATIONAL, &formatted);
+			std::string formatted;
+			phoneUtil->Format(number, PhoneNumberUtil::INTERNATIONAL, &formatted);
 
 			//Copy the formatted number to a C-style string.
 			//We must use the PostgreSQL allocator, not new/malloc.
 			size_t len = formatted.length();
-			result = (char*)palloc(len + 1);
+			char* result = (char*)palloc(len + 1);
 			if(result == nullptr) {
-				reportOutOfMemory();
-				PG_RETURN_NULL();
+				throw std::bad_alloc();
 			}
 			memcpy(result, formatted.data(), len);
 			result[len] = '\0';

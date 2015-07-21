@@ -18,4 +18,4 @@ $(extension_script): $(EXTENSION).sql.template get_sizeof_phone_number
 	sed "s/SIZEOF_PHONE_NUMBER/$(shell ./get_sizeof_phone_number)/" $< > $@
 
 get_sizeof_phone_number: get_sizeof_phone_number.cpp
-	g++ $< -o $@
+	$(CXX) -std=c++11 $< -o $@

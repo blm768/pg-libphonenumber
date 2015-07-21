@@ -30,3 +30,12 @@ ShortPhoneNumber::ShortPhoneNumber(i18n::phonenumbers::PhoneNumber number) {
 		_leading_zeros = 0;
 	}
 }
+
+ShortPhoneNumber::operator PhoneNumber() const {
+	PhoneNumber number;
+	number.set_country_code(_country_code);
+	number.set_national_number(_national_number);
+	number.set_italian_leading_zero(_leading_zeros > 0);
+	number.set_number_of_leading_zeros(_leading_zeros);
+	return number;
+}

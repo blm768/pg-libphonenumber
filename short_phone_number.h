@@ -12,7 +12,7 @@ class PhoneNumberTooLongException : std::runtime_error {
 	static const i18n::phonenumbers::PhoneNumberUtil* const phoneUtil; 
 };
 
-struct ShortPhoneNumber {
+class ShortPhoneNumber {
 	public:
 	enum : size_t {
 		MAX_COUNTRY_CODE = 999,
@@ -22,6 +22,8 @@ struct ShortPhoneNumber {
 	};
 
 	ShortPhoneNumber(i18n::phonenumbers::PhoneNumber number);
+
+	operator i18n::phonenumbers::PhoneNumber() const;
 
 	private:
 	google::protobuf::uint32 _country_code : 10;

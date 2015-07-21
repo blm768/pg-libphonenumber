@@ -1,10 +1,8 @@
 #include <iostream>
 
-#include "phonenumbers/phonenumber.pb.h"
-
-using namespace i18n::phonenumbers;
+#include "short_phone_number.h"
 
 int main(int argc, const char** argv) {
-	std::cout << sizeof(PhoneNumber) << std::endl;
+	std::cout << sizeof(ShortPhoneNumber) << std::endl;
 	return 0;
 }

@@ -1,3 +1,6 @@
+#The build configuration
+CONFIG := release
+
 EXTENSION := pg_libphonenumber
 version := 1.0
 extension_script := $(EXTENSION)--$(version).sql
@@ -5,7 +8,10 @@ DATA_built := $(extension_script)
 
 MODULE_big := pg_libphonenumber
 OBJS := pg_libphonenumber.o short_phone_number.o
-PG_CPPFLAGS := -fPIC -std=c++11 -g
+PG_CPPFLAGS := -fPIC -std=c++11
+ifeq ($(CONFIG),debug)
+	PG_CPPFLAGS += -g
+endif
 SHLIB_LINK := -lphonenumber -lstdc++
 
 EXTRA_CLEAN := $(extension_script) get_sizeof_phone_number

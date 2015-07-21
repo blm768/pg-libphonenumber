@@ -71,7 +71,6 @@ ShortPhoneNumber* parsePhoneNumber(const char* number_str, const char* country) 
 		ShortPhoneNumber* short_number;
 
 		short_number = (ShortPhoneNumber*)palloc0(sizeof(ShortPhoneNumber));
-		//TODO: can this be removed? (palloc normally handles this, right?)
 		if(short_number == nullptr) {
 			throw std::bad_alloc();
 		}
@@ -79,6 +78,7 @@ ShortPhoneNumber* parsePhoneNumber(const char* number_str, const char* country) 
 		PhoneNumberUtil::ErrorType error;
 		error = phoneUtil->Parse(number_str, country, &number);
 		if(error == PhoneNumberUtil::NO_PARSING_ERROR) {
+			//Initialize short_number using placement new.
 			new(short_number) ShortPhoneNumber(number);
 			return short_number;
 		} else {

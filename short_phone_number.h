@@ -2,7 +2,7 @@
 
 #include "phonenumbers/phonenumberutil.h"
 
-class PhoneNumberTooLongException : std::runtime_error {
+class PhoneNumberTooLongException : public std::runtime_error {
 	public:
 	PhoneNumberTooLongException(const i18n::phonenumbers::PhoneNumber& number, const char* msg);
 

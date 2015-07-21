@@ -47,7 +47,7 @@ static void reportParseError(const char* phone_number, PhoneNumberUtil::ErrorTyp
 			 errdetail("%s", parseErrorMessage(err))));
 }
 
-static void reportGenericError(std::exception& exception) {
+static void reportGenericError(const std::exception& exception) {
 	ereport(ERROR,
 			(errcode(ERRCODE_EXTERNAL_ROUTINE_INVOCATION_EXCEPTION),
 			 errmsg("C++ exception: %s", typeid(exception).name()),
@@ -86,9 +86,12 @@ ShortPhoneNumber* parsePhoneNumber(const char* number_str, const char* country) 
 			return nullptr;
 		}
 		//TODO: check number validity.
-	} catch(std::bad_alloc& e) {
+	} catch(const std::bad_alloc& e) {
 		reportOutOfMemory();
-	} catch (std::exception& e) {
+	//TODO: figure out why we need this.
+	} catch(const PhoneNumberTooLongException& e) {
+		reportGenericError(e);
+	} catch(const std::exception& e) {
 		reportGenericError(e);
 	}
 
@@ -164,9 +167,9 @@ extern "C" {
 			result[len] = '\0';
 
 			PG_RETURN_CSTRING(result);
-		} catch(std::bad_alloc& e) {
+		} catch(const std::bad_alloc& e) {
 			reportOutOfMemory();
-		} catch (std::exception& e) {
+		} catch (const std::exception& e) {
 			reportGenericError(e);
 		}
 

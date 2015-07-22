@@ -19,7 +19,6 @@ CREATE FUNCTION phone_number_send(phone_number) RETURNS bytea
     LANGUAGE c IMMUTABLE STRICT
     AS 'pg_libphonenumber', 'phone_number_send';
 
---SIZEOF_PHONE_NUMBER is replaced when generating the "real" script.
 CREATE TYPE phone_number (
     INTERNALLENGTH = SIZEOF_PHONE_NUMBER,
     INPUT = phone_number_in,

@@ -18,15 +18,15 @@ else
 endif
 SHLIB_LINK := -lphonenumber -lstdc++
 
-EXTRA_CLEAN := $(extension_script) get_sizeof_phone_number
+EXTRA_CLEAN := $(extension_script) tools/get_sizeof_phone_number
 
 PG_CONFIG := pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 
-$(extension_script): $(EXTENSION).sql.template get_sizeof_phone_number
-	sed "s/SIZEOF_PHONE_NUMBER/$(shell ./get_sizeof_phone_number)/" $< > $@
+$(extension_script): $(EXTENSION).sql.template tools/get_sizeof_phone_number
+	sed "s/SIZEOF_PHONE_NUMBER/$(shell tools/get_sizeof_phone_number)/" $< > $@
 
-get_sizeof_phone_number: get_sizeof_phone_number.cpp
+tools/get_sizeof_phone_number: tools/get_sizeof_phone_number.cpp
 	$(CXX) -std=c++11 $< -o $@
 

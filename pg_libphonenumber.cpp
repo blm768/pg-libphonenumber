@@ -159,26 +159,39 @@ extern "C" {
 	phone_number_recv(PG_FUNCTION_ARGS) {
 		try {
 			StringInfo buf = (StringInfo)PG_GETARG_POINTER(0);
-			ShortPhoneNumber* result;
+			ShortPhoneNumber* number;
 
-			result = (ShortPhoneNumber*)palloc(sizeof(ShortPhoneNumber));
-			//TODO: make portable.
-			*result = reinterpret_cast<ShortPhoneNumber>pq_getmsgint64(buf);
-			PG_RETURN_POINTER(result);
+			number = (ShortPhoneNumber*)palloc(sizeof(ShortPhoneNumber));
+			//TODO: make portable (fix endianness issues, etc.).
+			pq_copymsgbytes(buf, (char*)number, sizeof(ShortPhoneNumber));
+			PG_RETURN_POINTER(number);
+		} catch(const std::bad_alloc& e) {
+			reportOutOfMemory();
+		} catch (const std::exception& e) {
+			reportGenericError(e);
+		}
+
+		PG_RETURN_NULL();
 	}
 
 	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_send);
 
 	PGDLLEXPORT
 	Datum
-	phone_number_send(PG_FUNCTION_ARGS)
-	{
-		ShortPhoneNumber *number = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
-		StringInfoData buf;
+	phone_number_send(PG_FUNCTION_ARGS) {
+		try {
+			const ShortPhoneNumber *number = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+			StringInfoData buf;
 
-		pq_begintypsend(&buf);
-		//TODO: make portable.
-		pq_sendint64(&buf, reinterpret_cast<uint64>*number);;
-		PG_RETURN_BYTEA_P(pq_endtypsend(&buf));
+			pq_begintypsend(&buf);
+			pq_sendbytes(&buf, (const char*)number, sizeof(ShortPhoneNumber));
+			PG_RETURN_BYTEA_P(pq_endtypsend(&buf));
+		} catch(const std::bad_alloc& e) {
+			reportOutOfMemory();
+		} catch (const std::exception& e) {
+			reportGenericError(e);
+		}
+
+		PG_RETURN_NULL();
 	}
 }

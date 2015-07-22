@@ -7,10 +7,6 @@ CREATE FUNCTION phone_number_in(cstring) RETURNS phone_number
     LANGUAGE c IMMUTABLE STRICT
     AS 'pg_libphonenumber', 'phone_number_in';
 
-CREATE FUNCTION parse_phone_number(cstring, cstring) RETURNS phone_number
-    LANGUAGE c IMMUTABLE STRICT
-    AS 'pg_libphonenumber', 'parse_phone_number';
-
 CREATE FUNCTION phone_number_out(phone_number) RETURNS cstring
     LANGUAGE c IMMUTABLE STRICT
     AS 'pg_libphonenumber', 'phone_number_out';
@@ -33,5 +29,12 @@ CREATE TYPE phone_number (
     ALIGNMENT = double,
     STORAGE = plain
 );
+
+CREATE CAST (phone_number AS text)
+	WITH INOUT;
+
+CREATE FUNCTION parse_phone_number(text, text) RETURNS phone_number
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'parse_phone_number';
 
 -- vim:syntax=sql

@@ -64,7 +64,16 @@ static void logInfo(const char* msg) {
  * Utility functions
  */
 
+static char* textToCString(const text* text) {
+	size_t len = VARSIZE(text) - VARHDRSZ;
+	char* str = (char*)palloc(len + 1);
+	memcpy(str, VARDATA(text), len);
+	str[len] = '\0';
+	return str;
+}
+
 //Internal function used by phone_number_in and parse_phone_number
+//TODO: take a std::string to minimize copying?
 ShortPhoneNumber* parsePhoneNumber(const char* number_str, const char* country) throw() {
 	try {
 		PhoneNumber number;
@@ -132,14 +141,26 @@ extern "C" {
 	Datum
 	parse_phone_number(PG_FUNCTION_ARGS)
 	{
-		const char *number_str = PG_GETARG_CSTRING(0);
-		const char *country = PG_GETARG_CSTRING(1);
+		try {
+			const text* number_text = PG_GETARG_TEXT_P(0);
+			const text* country_text = PG_GETARG_TEXT_P(1);
 
-		ShortPhoneNumber* number = parsePhoneNumber(number_str, country);
-		if(number) {
-			PG_RETURN_POINTER(number);
-		} else {
-			PG_RETURN_NULL();
+			char* number_str = textToCString(number_text);
+			char* country = textToCString(country_text);
+
+			ShortPhoneNumber* number = parsePhoneNumber(number_str, country);
+			//TODO: prevent leaks.
+			pfree(number_str);
+			pfree(country);
+			if(number) {
+				PG_RETURN_POINTER(number);
+			} else {
+				PG_RETURN_NULL();
+			}
+		} catch(std::bad_alloc e) {
+			reportOutOfMemory();
+		} catch(std::exception& e) {
+			reportGenericError(e);
 		}
 	}
 

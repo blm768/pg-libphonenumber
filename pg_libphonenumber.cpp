@@ -154,20 +154,17 @@ extern "C" {
 
 	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_recv);
 
-	//TODO: handle leading zeroes?
-	//TODO: implement these correctly.
 	PGDLLEXPORT
 	Datum
-	phone_number_recv(PG_FUNCTION_ARGS)
-	{
-		StringInfo buf = (StringInfo)PG_GETARG_POINTER(0);
-		PhoneNumber *result;
+	phone_number_recv(PG_FUNCTION_ARGS) {
+		try {
+			StringInfo buf = (StringInfo)PG_GETARG_POINTER(0);
+			ShortPhoneNumber* result;
 
-		//TODO: error handling?
-		result = (PhoneNumber*)palloc0(sizeof(PhoneNumber));
-		result->set_country_code(pq_getmsgint(buf, 4));
-		result->set_national_number(pq_getmsgint64(buf));
-		PG_RETURN_POINTER(result);
+			result = (ShortPhoneNumber*)palloc(sizeof(ShortPhoneNumber));
+			//TODO: make portable.
+			*result = reinterpret_cast<ShortPhoneNumber>pq_getmsgint64(buf);
+			PG_RETURN_POINTER(result);
 	}
 
 	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_send);
@@ -176,12 +173,12 @@ extern "C" {
 	Datum
 	phone_number_send(PG_FUNCTION_ARGS)
 	{
-		PhoneNumber *number = (PhoneNumber*)PG_GETARG_POINTER(0);
+		ShortPhoneNumber *number = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
 		StringInfoData buf;
 
 		pq_begintypsend(&buf);
-		pq_sendint(&buf, number->country_code(), 4);
-		pq_sendint64(&buf, number->national_number());
+		//TODO: make portable.
+		pq_sendint64(&buf, reinterpret_cast<uint64>*number);;
 		PG_RETURN_BYTEA_P(pq_endtypsend(&buf));
 	}
 }

@@ -6,8 +6,10 @@ version := 1.0
 extension_script := $(EXTENSION)--$(version).sql
 DATA_built := $(extension_script)
 
+cpp_files := $(wildcard *.cpp)
+
 MODULE_big := pg_libphonenumber
-OBJS := pg_libphonenumber.o short_phone_number.o
+OBJS := $(patsubst %.cpp,%.o,$(cpp_files))
 PG_CPPFLAGS := -fPIC -std=c++11
 ifeq ($(CONFIG),debug)
 	PG_CPPFLAGS += -g -Og
@@ -27,3 +29,4 @@ $(extension_script): $(EXTENSION).sql.template get_sizeof_phone_number
 
 get_sizeof_phone_number: get_sizeof_phone_number.cpp
 	$(CXX) -std=c++11 $< -o $@
+

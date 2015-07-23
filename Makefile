@@ -27,6 +27,6 @@ include $(PGXS)
 $(extension_script): $(EXTENSION).sql.template tools/get_sizeof_phone_number
 	sed "s/SIZEOF_PHONE_NUMBER/$(shell tools/get_sizeof_phone_number)/" $< > $@
 
-tools/get_sizeof_phone_number: tools/get_sizeof_phone_number.cpp
+tools/get_sizeof_phone_number: tools/get_sizeof_phone_number.cpp short_phone_number.h
 	$(CXX) -std=c++11 $< -o $@
 

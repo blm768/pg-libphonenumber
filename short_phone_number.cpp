@@ -41,3 +41,4 @@ ShortPhoneNumber::operator PhoneNumber() const {
 	number.set_number_of_leading_zeros(leading_zeros);
 	return number;
 }
+

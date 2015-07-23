@@ -18,26 +18,49 @@ class ShortPhoneNumber {
 	public:
 	enum : size_t {
 		MAX_COUNTRY_CODE = 999,
+		MAX_LEADING_ZEROS = 15,
 		//15 digits
 		MAX_NATIONAL_NUMBER = 999999999999999,
-		MAX_LEADING_ZEROS = 15,
 	};
 	
 	enum : size_t {
 		COUNTRY_CODE_BITS = 10,
-		NATIONAL_NUMBER_BITS = 50,
 		LEADING_ZEROS_BITS = 4,
+		NATIONAL_NUMBER_BITS = 50,
 	};
 	
 	enum : size_t {
 		COUNTRY_CODE_OFFSET = 0,
-		NATIONAL_NUMBER_OFFSET = COUNTRY_CODE_OFFSET + COUNTRY_CODE_BITS,
-		LEADING_ZEROS_OFFSET = NATIONAL_NUMBER_OFFSET + NATIONAL_NUMBER_BITS,
+		LEADING_ZEROS_OFFSET = COUNTRY_CODE_OFFSET + COUNTRY_CODE_BITS,
+		NATIONAL_NUMBER_OFFSET = LEADING_ZEROS_OFFSET + LEADING_ZEROS_BITS,
 	};
 
 	ShortPhoneNumber(i18n::phonenumbers::PhoneNumber number);
 
+	bool operator == (const ShortPhoneNumber other) const {
+		return this->_data == other._data;
+	}
+	
+	bool operator != (const ShortPhoneNumber other) const {
+		return !(*this == other);
+	}
+
 	operator i18n::phonenumbers::PhoneNumber() const;
+
+	/*
+	 * Compares to another PhoneNumber using a fast collation heuristic
+	 *
+	 * May not produce intuitive results for numbers with the same
+	 * country code but different lengths
+	 *
+	 * Returns:
+	 * - <0 (if a < b)
+	 * - 0 (if a == b)
+	 * - >0 (if a > b)
+	 */
+	google::protobuf::int64 compare_fast(ShortPhoneNumber other) const {
+		return other._data - this->_data;
+	}
 
 	google::protobuf::uint32 country_code() const {
 		return getMasked(_data, COUNTRY_CODE_BITS, COUNTRY_CODE_OFFSET);

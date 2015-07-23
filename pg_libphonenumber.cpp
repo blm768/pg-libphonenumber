@@ -76,12 +76,11 @@ extern "C" {
 
 	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_in);
 
-	PGDLLEXPORT
-	Datum
-	phone_number_in(PG_FUNCTION_ARGS)
-	{
+	PGDLLEXPORT Datum
+	phone_number_in(PG_FUNCTION_ARGS) {
 		const char *number_str = PG_GETARG_CSTRING(0);
 
+		//TODO: use international format instead.
 		ShortPhoneNumber* number = parsePhoneNumber(number_str, "US");
 		if(number) {
 			PG_RETURN_POINTER(number);
@@ -92,10 +91,8 @@ extern "C" {
 	
 	PGDLLEXPORT PG_FUNCTION_INFO_V1(parse_phone_number);
 
-	PGDLLEXPORT
-	Datum
-	parse_phone_number(PG_FUNCTION_ARGS)
-	{
+	PGDLLEXPORT Datum
+	parse_phone_number(PG_FUNCTION_ARGS) {
 		try {
 			const text* number_text = PG_GETARG_TEXT_P(0);
 			const text* country_text = PG_GETARG_TEXT_P(1);
@@ -112,7 +109,7 @@ extern "C" {
 			} else {
 				PG_RETURN_NULL();
 			}
-		} catch(std::bad_alloc e) {
+		} catch(std::bad_alloc& e) {
 			reportOutOfMemory();
 		} catch(std::exception& e) {
 			reportGenericError(e);
@@ -121,10 +118,8 @@ extern "C" {
 
 	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_out);
 
-	PGDLLEXPORT
-	Datum
-	phone_number_out(PG_FUNCTION_ARGS)
-	{
+	PGDLLEXPORT Datum
+	phone_number_out(PG_FUNCTION_ARGS) {
 		try {
 			const ShortPhoneNumber* short_number = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
 			PhoneNumber number = *short_number;
@@ -154,8 +149,7 @@ extern "C" {
 
 	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_recv);
 
-	PGDLLEXPORT
-	Datum
+	PGDLLEXPORT Datum
 	phone_number_recv(PG_FUNCTION_ARGS) {
 		try {
 			StringInfo buf = (StringInfo)PG_GETARG_POINTER(0);
@@ -176,8 +170,7 @@ extern "C" {
 
 	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_send);
 
-	PGDLLEXPORT
-	Datum
+	PGDLLEXPORT Datum
 	phone_number_send(PG_FUNCTION_ARGS) {
 		try {
 			const ShortPhoneNumber *number = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
@@ -194,4 +187,101 @@ extern "C" {
 
 		PG_RETURN_NULL();
 	}
+
+	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_equal);
+
+	PGDLLEXPORT Datum
+	phone_number_equal(PG_FUNCTION_ARGS) {
+		try {
+			const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+			const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+
+			PG_RETURN_BOOL(*number1 == *number2);
+		} catch(std::exception& e) {
+			reportGenericError(e);
+		}
+
+		PG_RETURN_NULL();
+	}
+
+	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_not_equal);
+
+	PGDLLEXPORT Datum
+	phone_number_not_equal(PG_FUNCTION_ARGS) {
+		try {
+			const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+			const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+
+			PG_RETURN_BOOL(*number1 != *number2);
+		} catch(std::exception& e) {
+			reportGenericError(e);
+		}
+
+		PG_RETURN_NULL();
+	}
+
+	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_less);
+
+	PGDLLEXPORT Datum
+	phone_number_less(PG_FUNCTION_ARGS) {
+		try {
+			const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+			const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+
+			PG_RETURN_BOOL(number1->compare_fast(*number2) < 0);
+		} catch(std::exception& e) {
+			reportGenericError(e);
+		}
+
+		PG_RETURN_NULL();
+	}
+
+	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_less_or_equal);
+
+	PGDLLEXPORT Datum
+	phone_number_less_or_equal(PG_FUNCTION_ARGS) {
+		try {
+			const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+			const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+
+			PG_RETURN_BOOL(number1->compare_fast(*number2) <= 0);
+		} catch(std::exception& e) {
+			reportGenericError(e);
+		}
+
+		PG_RETURN_NULL();
+	}
+
+	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_greater);
+
+	PGDLLEXPORT Datum
+	phone_number_greater(PG_FUNCTION_ARGS) {
+		try {
+			const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+			const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+
+			PG_RETURN_BOOL(number1->compare_fast(*number2) > 0);
+		} catch(std::exception& e) {
+			reportGenericError(e);
+		}
+
+		PG_RETURN_NULL();
+	}
+
+	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_greater_or_equal);
+
+	PGDLLEXPORT Datum
+	phone_number_greater_or_equal(PG_FUNCTION_ARGS) {
+		try {
+			const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+			const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+
+			PG_RETURN_BOOL(number1->compare_fast(*number2) >= 0);
+		} catch(std::exception& e) {
+			reportGenericError(e);
+		}
+
+		PG_RETURN_NULL();
+	}
+
 }

@@ -3,6 +3,8 @@
 
 CREATE TYPE phone_number;
 
+--Basic function definitions
+
 CREATE FUNCTION phone_number_in(cstring) RETURNS phone_number
     LANGUAGE c IMMUTABLE STRICT
     AS 'pg_libphonenumber', 'phone_number_in';
@@ -29,8 +31,110 @@ CREATE TYPE phone_number (
     STORAGE = plain
 );
 
+--Cast definitions
+
 CREATE CAST (phone_number AS text)
 	WITH INOUT;
+
+--Operator definitions
+
+CREATE FUNCTION phone_number_equal(phone_number, phone_number) RETURNS bool
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_equal';
+
+CREATE OPERATOR = (
+	leftarg = phone_number,
+	rightarg = phone_number,
+	procedure = phone_number_equal,
+	commutator = =,
+	negator = <>,
+	restrict = eqsel,
+	join = eqjoinsel,
+	hashes = true,
+	merges = true
+);
+
+CREATE FUNCTION phone_number_not_equal(phone_number, phone_number) RETURNS bool
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_not_equal';
+
+CREATE OPERATOR <> (
+	leftarg = phone_number,
+	rightarg = phone_number,
+	procedure = phone_number_not_equal,
+	commutator = <>,
+	negator = =,
+	restrict = neqsel,
+	join = neqjoinsel
+);
+
+CREATE FUNCTION phone_number_less(phone_number, phone_number) RETURNS bool
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_less';
+
+CREATE OPERATOR < (
+	leftarg = phone_number,
+	rightarg = phone_number,
+	procedure = phone_number_less,
+	commutator = >,
+	negator = >=,
+	restrict = scalarltsel,
+	join = scalarltjoinsel
+);
+
+CREATE FUNCTION phone_number_less_or_equal(phone_number, phone_number) RETURNS bool
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_less_or_equal';
+
+CREATE OPERATOR <= (
+	leftarg = phone_number,
+	rightarg = phone_number,
+	procedure = phone_number_less_or_equal,
+	commutator = >=,
+	negator = >,
+	restrict = scalarltsel,
+	join = scalarltjoinsel
+);
+
+CREATE FUNCTION phone_number_greater(phone_number, phone_number) RETURNS bool
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_greater';
+
+CREATE OPERATOR > (
+	leftarg = phone_number,
+	rightarg = phone_number,
+	procedure = phone_number_greater,
+	commutator = >,
+	negator = <=,
+	restrict = scalargtsel,
+	join = scalargtjoinsel
+);
+
+CREATE FUNCTION phone_number_greater_or_equal(phone_number, phone_number) RETURNS bool
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_greater_or_equal';
+
+CREATE OPERATOR >= (
+	leftarg = phone_number,
+	rightarg = phone_number,
+	procedure = phone_number_greater_or_equal,
+	commutator = >=,
+	negator = <,
+	restrict = scalargtsel,
+	join = scalargtjoinsel
+);
+
+
+CREATE OPERATOR CLASS phone_number_ops
+	DEFAULT FOR TYPE phone_number USING btree AS
+		OPERATOR 1 <,
+		OPERATOR 2 <=,
+		OPERATOR 3 =,
+		OPERATOR 4 >=,
+		OPERATOR 5 >,
+		FUNCTION 1 phone_number_cmp(phone_number, phone_number);
+
+--General functions
 
 CREATE FUNCTION parse_phone_number(text, text) RETURNS phone_number
     LANGUAGE c IMMUTABLE STRICT

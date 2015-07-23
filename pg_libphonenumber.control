@@ -1,2 +1,3 @@
 encoding = 'utf-8'
 relocatable = true
+default_version = '1.0'

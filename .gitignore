@@ -1,5 +1,5 @@
 *.swp
 *.o
 *.so
-/get_sizeof_phone_number
+tools/get_sizeof_phone_number
 /pg_libphonenumber--*.sql

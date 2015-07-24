@@ -124,6 +124,9 @@ CREATE OPERATOR >= (
 	join = scalargtjoinsel
 );
 
+CREATE FUNCTION phone_number_cmp(phone_number, phone_number) RETURNS integer
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_cmp';
 
 CREATE OPERATOR CLASS phone_number_ops
 	DEFAULT FOR TYPE phone_number USING btree AS

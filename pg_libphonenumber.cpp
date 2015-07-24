@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <exception>
 #include <string>
 
@@ -15,6 +16,11 @@ extern "C" {
 using namespace i18n::phonenumbers;
 
 static const PhoneNumberUtil* const phoneUtil = PhoneNumberUtil::GetInstance();
+
+template <typename T>
+T clip(const T& n, const T& lower, const T& upper) {
+  return std::max(lower, std::min(n, upper));
+}
 
 /*
  * Utility functions
@@ -277,6 +283,24 @@ extern "C" {
 			const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
 
 			PG_RETURN_BOOL(number1->compare_fast(*number2) >= 0);
+		} catch(std::exception& e) {
+			reportGenericError(e);
+		}
+
+		PG_RETURN_NULL();
+	}
+
+	PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_cmp);
+
+	PGDLLEXPORT Datum
+	phone_number_cmp(PG_FUNCTION_ARGS) {
+		try {
+			const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+			const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+
+			int64 compared = number1->compare_fast(*number2);
+
+			PG_RETURN_INT32(clip<int64>(compared, -1, 1));
 		} catch(std::exception& e) {
 			reportGenericError(e);
 		}

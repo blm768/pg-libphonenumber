@@ -7,6 +7,8 @@ extern "C" {
 	#include "postgres.h"
 }
 
+#include "error_handling.h"
+
 using namespace i18n::phonenumbers;
 
 static const char* parseErrorMessage(PhoneNumberUtil::ErrorType error) {
@@ -31,7 +33,25 @@ static const char* parseErrorMessage(PhoneNumberUtil::ErrorType error) {
 
 void reportOutOfMemory() {
 	ereport(ERROR,
-		(errcode(ERRCODE_OUT_OF_MEMORY)));
+		(errcode(ERRCODE_OUT_OF_MEMORY),
+		 errmsg("Out of memory")));
+}
+
+void reportException(const std::exception& exception) {
+	{
+		const std::bad_alloc* bad_alloc = reinterpret_cast<const std::bad_alloc*>(&exception);
+		if(bad_alloc != nullptr) {
+			reportOutOfMemory();
+			return;
+		}
+	}
+
+	//If we don't have a special way to handle this exception, report
+	//a generic error.
+	ereport(ERROR,
+			(errcode(ERRCODE_EXTERNAL_ROUTINE_INVOCATION_EXCEPTION),
+			 errmsg("C++ exception: %s", typeid(exception).name()),
+			 errdetail("%s", exception.what())));
 }
 
 void reportParseError(const char* phone_number, PhoneNumberUtil::ErrorType err) {
@@ -39,13 +59,6 @@ void reportParseError(const char* phone_number, PhoneNumberUtil::ErrorType err) 
 			(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 			 errmsg("unable to parse '%s' as a phone number", phone_number),
 			 errdetail("%s", parseErrorMessage(err))));
-}
-
-void reportGenericError(const std::exception& exception) {
-	ereport(ERROR,
-			(errcode(ERRCODE_EXTERNAL_ROUTINE_INVOCATION_EXCEPTION),
-			 errmsg("C++ exception: %s", typeid(exception).name()),
-			 errdetail("%s", exception.what())));
 }
 
 void logInfo(const char* msg) {

@@ -57,13 +57,11 @@ ShortPhoneNumber* parsePhoneNumber(const char* number_str, const char* country) 
 			return nullptr;
 		}
 		//TODO: check number validity.
-	} catch(const std::bad_alloc& e) {
-		reportOutOfMemory();
 	//TODO: figure out why we need this.
 	} catch(const PhoneNumberTooLongException& e) {
-		reportGenericError(e);
+		reportException(e);
 	} catch(const std::exception& e) {
-		reportGenericError(e);
+		reportException(e);
 	}
 
 	return nullptr;
@@ -115,10 +113,8 @@ extern "C" {
 			} else {
 				PG_RETURN_NULL();
 			}
-		} catch(std::bad_alloc& e) {
-			reportOutOfMemory();
 		} catch(std::exception& e) {
-			reportGenericError(e);
+			reportException(e);
 		}
 	}
 
@@ -144,10 +140,8 @@ extern "C" {
 			result[len] = '\0';
 
 			PG_RETURN_CSTRING(result);
-		} catch(const std::bad_alloc& e) {
-			reportOutOfMemory();
 		} catch (const std::exception& e) {
-			reportGenericError(e);
+			reportException(e);
 		}
 
 		PG_RETURN_NULL();
@@ -165,10 +159,8 @@ extern "C" {
 			//TODO: make portable (fix endianness issues, etc.).
 			pq_copymsgbytes(buf, (char*)number, sizeof(ShortPhoneNumber));
 			PG_RETURN_POINTER(number);
-		} catch(const std::bad_alloc& e) {
-			reportOutOfMemory();
 		} catch (const std::exception& e) {
-			reportGenericError(e);
+			reportException(e);
 		}
 
 		PG_RETURN_NULL();
@@ -185,10 +177,8 @@ extern "C" {
 			pq_begintypsend(&buf);
 			pq_sendbytes(&buf, (const char*)number, sizeof(ShortPhoneNumber));
 			PG_RETURN_BYTEA_P(pq_endtypsend(&buf));
-		} catch(const std::bad_alloc& e) {
-			reportOutOfMemory();
 		} catch (const std::exception& e) {
-			reportGenericError(e);
+			reportException(e);
 		}
 
 		PG_RETURN_NULL();
@@ -204,7 +194,7 @@ extern "C" {
 
 			PG_RETURN_BOOL(*number1 == *number2);
 		} catch(std::exception& e) {
-			reportGenericError(e);
+			reportException(e);
 		}
 
 		PG_RETURN_NULL();
@@ -220,7 +210,7 @@ extern "C" {
 
 			PG_RETURN_BOOL(*number1 != *number2);
 		} catch(std::exception& e) {
-			reportGenericError(e);
+			reportException(e);
 		}
 
 		PG_RETURN_NULL();
@@ -236,7 +226,7 @@ extern "C" {
 
 			PG_RETURN_BOOL(number1->compare_fast(*number2) < 0);
 		} catch(std::exception& e) {
-			reportGenericError(e);
+			reportException(e);
 		}
 
 		PG_RETURN_NULL();
@@ -252,7 +242,7 @@ extern "C" {
 
 			PG_RETURN_BOOL(number1->compare_fast(*number2) <= 0);
 		} catch(std::exception& e) {
-			reportGenericError(e);
+			reportException(e);
 		}
 
 		PG_RETURN_NULL();
@@ -268,7 +258,7 @@ extern "C" {
 
 			PG_RETURN_BOOL(number1->compare_fast(*number2) > 0);
 		} catch(std::exception& e) {
-			reportGenericError(e);
+			reportException(e);
 		}
 
 		PG_RETURN_NULL();
@@ -284,7 +274,7 @@ extern "C" {
 
 			PG_RETURN_BOOL(number1->compare_fast(*number2) >= 0);
 		} catch(std::exception& e) {
-			reportGenericError(e);
+			reportException(e);
 		}
 
 		PG_RETURN_NULL();
@@ -302,7 +292,7 @@ extern "C" {
 
 			PG_RETURN_INT32(clip<int64>(compared, -1, 1));
 		} catch(std::exception& e) {
-			reportGenericError(e);
+			reportException(e);
 		}
 
 		PG_RETURN_NULL();

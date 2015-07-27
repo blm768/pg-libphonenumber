@@ -39,7 +39,7 @@ void reportOutOfMemory() {
 
 void reportException(const std::exception& exception) {
 	{
-		const std::bad_alloc* bad_alloc = reinterpret_cast<const std::bad_alloc*>(&exception);
+		const std::bad_alloc* bad_alloc = dynamic_cast<const std::bad_alloc*>(&exception);
 		if(bad_alloc != nullptr) {
 			reportOutOfMemory();
 			return;

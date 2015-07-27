@@ -36,35 +36,26 @@ static char* textToCString(const text* text) {
 
 //Internal function used by phone_number_in and parse_phone_number
 //TODO: take a std::string to minimize copying?
-ShortPhoneNumber* parsePhoneNumber(const char* number_str, const char* country) throw() {
-	try {
-		PhoneNumber number;
-		ShortPhoneNumber* short_number;
+ShortPhoneNumber* parsePhoneNumber(const char* number_str, const char* country) {
+	PhoneNumber number;
+	ShortPhoneNumber* short_number;
 
-		short_number = (ShortPhoneNumber*)palloc0(sizeof(ShortPhoneNumber));
-		if(short_number == nullptr) {
-			throw std::bad_alloc();
-		}
-
-		PhoneNumberUtil::ErrorType error;
-		error = phoneUtil->Parse(number_str, country, &number);
-		if(error == PhoneNumberUtil::NO_PARSING_ERROR) {
-			//Initialize short_number using placement new.
-			new(short_number) ShortPhoneNumber(number);
-			return short_number;
-		} else {
-			reportParseError(number_str, error);
-			return nullptr;
-		}
-		//TODO: check number validity.
-	//TODO: figure out why we need this.
-	} catch(const PhoneNumberTooLongException& e) {
-		reportException(e);
-	} catch(const std::exception& e) {
-		reportException(e);
+	short_number = (ShortPhoneNumber*)palloc0(sizeof(ShortPhoneNumber));
+	if(short_number == nullptr) {
+		throw std::bad_alloc();
 	}
 
-	return nullptr;
+	PhoneNumberUtil::ErrorType error;
+	error = phoneUtil->Parse(number_str, country, &number);
+	if(error == PhoneNumberUtil::NO_PARSING_ERROR) {
+		//Initialize short_number using placement new.
+		new(short_number) ShortPhoneNumber(number);
+		return short_number;
+	} else {
+		reportParseError(number_str, error);
+		return nullptr;
+	}
+	//TODO: check number validity.
 }
 
 //TODO: check null args (PG_ARGISNULL) and make non-strict?
@@ -82,14 +73,18 @@ extern "C" {
 
 	PGDLLEXPORT Datum
 	phone_number_in(PG_FUNCTION_ARGS) {
-		const char *number_str = PG_GETARG_CSTRING(0);
+		try {
+			const char *number_str = PG_GETARG_CSTRING(0);
 
-		//TODO: use international format instead.
-		ShortPhoneNumber* number = parsePhoneNumber(number_str, "US");
-		if(number) {
-			PG_RETURN_POINTER(number);
-		} else {
-			PG_RETURN_NULL();
+			//TODO: use international format instead.
+			ShortPhoneNumber* number = parsePhoneNumber(number_str, "US");
+			if(number) {
+				PG_RETURN_POINTER(number);
+			} else {
+				PG_RETURN_NULL();
+			}
+		} catch(std::exception& e) {
+			reportException(e);
 		}
 	}
 	

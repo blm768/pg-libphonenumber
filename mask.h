@@ -1,3 +1,5 @@
+#include <algorithm>
+
 template<typename T> constexpr T mask(size_t bits, size_t offset = 0) {
 	return (((T)1 << bits) - 1) << offset;
 }

@@ -1,4 +1,5 @@
-#include <exception>
+#include "error_handling.h"
+
 #include <string>
 
 #include "phonenumbers/phonenumberutil.h"
@@ -7,7 +8,7 @@ extern "C" {
 	#include "postgres.h"
 }
 
-#include "error_handling.h"
+#include "short_phone_number.h"
 
 using namespace i18n::phonenumbers;
 
@@ -37,11 +38,28 @@ void reportOutOfMemory() {
 		 errmsg("Out of memory")));
 }
 
+/*
+ * Reports a generic C++ exception as a PostgreSQL error
+ *
+ * May produce specialized SQLSTATE values and/or messages
+ * depending on the type of the exception
+ */
 void reportException(const std::exception& exception) {
 	{
 		const std::bad_alloc* bad_alloc = dynamic_cast<const std::bad_alloc*>(&exception);
 		if(bad_alloc != nullptr) {
 			reportOutOfMemory();
+			return;
+		}
+		const PhoneNumberTooLongException* too_long =
+			dynamic_cast<const PhoneNumberTooLongException*>(&exception);
+		if(too_long != nullptr) {
+			std::string phone_number = too_long->number_string();
+			phone_number += '\0';
+			ereport(ERROR,
+				(errcode(ERRCODE_NUMERIC_VALUE_OUT_OF_RANGE),
+				 errmsg("phone number '%s' is too long", phone_number.data()),
+				 errdetail("%s", exception.what())));
 			return;
 		}
 	}

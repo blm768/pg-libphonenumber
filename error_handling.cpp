@@ -17,11 +17,16 @@ static const char* parseErrorMessage(PhoneNumberUtil::ErrorType error) {
 	switch(error) {
 	case PNU::NO_PARSING_ERROR:
 		return "Parsed successfully";
-	case PNU::NOT_A_NUMBER:
-		return "String does not appear to contain a phone number.";
 	case PNU::INVALID_COUNTRY_CODE_ERROR:
 		return "Invalid country code";
-	//TODO: handle more error cases specifically.
+	case PNU::NOT_A_NUMBER:
+		return "String does not appear to contain a phone number";
+	case PNU::TOO_SHORT_AFTER_IDD:
+		return "Too short after IDD";
+	case PNU::TOO_SHORT_NSN:
+		return "National number is too short";
+	case PNU::TOO_LONG_NSN:
+		return "National number is too long";
 	default:
 		//We have some generic parsing error.
 		return "Unable to parse number";

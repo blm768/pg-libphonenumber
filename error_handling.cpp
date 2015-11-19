@@ -1,5 +1,6 @@
 #include "error_handling.h"
 
+#include <typeinfo>
 #include <string>
 
 #include "phonenumbers/phonenumberutil.h"
@@ -89,4 +90,3 @@ void logInfo(const char* msg) {
 			(errcode(ERRCODE_SUCCESSFUL_COMPLETION),
 			errmsg("%s", msg)));
 }
-

@@ -1,5 +1,5 @@
 # pg-libphonenumber
-A (partially implemented!) PostgreSQL extension that provides access to Google's libphonenumber
+A (partially implemented!) PostgreSQL extension that provides access to [Google's libphonenumber](https://github.com/googlei18n/libphonenumber)
 
 ## Project status
 

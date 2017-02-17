@@ -7,14 +7,16 @@ This extension is in an <strong>ALPHA</strong> state. Do not use it in productio
 
 ## Synopsis
 
-   CREATE EXTENSION pg_libphonenumber;
-   SELECT parse_phone_number('03 7010 1234', 'AU');
-   SELECT parse_phone_number('2819010011', 'US');
+
+    CREATE EXTENSION pg_libphonenumber;
+    SELECT parse_phone_number('03 7010 1234', 'AU');
+    SELECT parse_phone_number('2819010011', 'US');
+    
+    CREATE TABLE foo ( ph phone_number );
   
-   -- DO NOT RELY ON THIS
-   -- may not always this work way with implicit cast.
-   SELECT '2819010011'::phone_number; -- assumes US
-   
+    -- DO NOT RELY ON THIS
+    -- may not always this work way with implicit cast.
+    SELECT '2819010011'::phone_number; -- assumes US   
 
 ## Installation
 
@@ -22,14 +24,14 @@ This extension is in an <strong>ALPHA</strong> state. Do not use it in productio
 
 First you need install `libphonenumber-dev` and the corresponding `postgresql-server-dev` package.
 
-   sudo apt-get install build-essential
-   sudo apt-get install postgresql-server-dev-9.5
-   sudo apt-get install libphonenumber-dev
+    sudo apt-get install build-essential
+    sudo apt-get install postgresql-server-dev-9.5
+    sudo apt-get install libphonenumber-dev
 
 Then clone this repostiroy
 
-   cd /tmp
-   git clone https://github.com/blm768/pg-libphonenumber
-   cd pg-libphonenumber
-   make
-   sudo make install
+    cd /tmp
+    git clone https://github.com/blm768/pg-libphonenumber
+    cd pg-libphonenumber
+    make
+    sudo make install

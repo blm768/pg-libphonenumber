@@ -1,0 +1,28 @@
+{
+    "name": "pg_libphonenumber",
+    "abstract": "Stores and manipulates phone numbers using Google's libphonenumber",
+    "version": "0.1.0",
+    "maintainer": "Benjamin L. Merritt <blm768@gmail.com>",
+    "license": "apache",
+    "provides": {
+      "pg_libphonenumber": {
+         "abstract": "Stores and manipulates phone numbers using Google's libphonenumber",
+         "file": "pg_libphonenumber--0.1.0.sql",
+         "version": "0.1.0"
+      }
+    },
+    "resources": {
+      "bugtracker": {
+         "web": "http://github.com/blm768/pg-libphonenumber/issues/"
+      },
+      "repository": {
+        "url":  "git://github.com/blm768/pg-libphonenumber.git",
+        "web":  "http://github.com/blm768/pg-libphonenumber/",
+        "type": "git"
+      }
+   },
+    "meta-spec": {
+       "version": "1.0.0",
+       "url": "http://pgxn.org/meta/spec.txt"
+    }
+}

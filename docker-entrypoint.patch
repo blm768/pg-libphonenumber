@@ -1,0 +1,13 @@
+32c32,33
+< if [ "$1" = 'postgres' ] && [ "$(id -u)" = '0' ]; then
+---
+> #if [ "$1" = 'postgres' ] && [ "$(id -u)" = '0' ]; then
+> if [ "$(id -u)" = '0' ]; then
+44c45
+< if [ "$1" = 'postgres' ]; then
+---
+> #if [ "$1" = 'postgres' ]; then
+130c131
+< fi
+---
+> #fi

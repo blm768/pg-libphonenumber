@@ -3,10 +3,7 @@ CONFIG := release
 
 # Extension packaging options
 EXTENSION := pg_libphonenumber
-version := 0.1.0
-# TODO: include scripts for all versions.
-extension_script := sql/$(EXTENSION)--$(version).sql
-DATA := $(extension_script)
+DATA := sql/$(EXTENSION)--*.sql
 REGRESS := regression
 
 # Build options

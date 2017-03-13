@@ -76,6 +76,10 @@ extern "C" {
         PG_MODULE_MAGIC;
     #endif
 
+    /*
+     * I/O functions
+     */
+
     PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_in);
 
     PGDLLEXPORT Datum
@@ -85,31 +89,6 @@ extern "C" {
 
             //TODO: use international format instead.
             ShortPhoneNumber* number = parse_phone_number(number_str, "US");
-            if(number) {
-                PG_RETURN_POINTER(number);
-            } else {
-                PG_RETURN_NULL();
-            }
-        } catch(std::exception& e) {
-            reportException(e);
-        }
-    }
-
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(parse_phone_number);
-
-    PGDLLEXPORT Datum
-    parse_phone_number(PG_FUNCTION_ARGS) {
-        try {
-            const text* number_text = PG_GETARG_TEXT_P(0);
-            const text* country_text = PG_GETARG_TEXT_P(1);
-
-            char* number_str = text_to_c_string(number_text);
-            char* country = text_to_c_string(country_text);
-
-            ShortPhoneNumber* number = parse_phone_number(number_str, country);
-            //TODO: prevent leaks.
-            pfree(number_str);
-            pfree(country);
             if(number) {
                 PG_RETURN_POINTER(number);
             } else {
@@ -185,6 +164,10 @@ extern "C" {
 
         PG_RETURN_NULL();
     }
+
+    /*
+     * Operator functions
+     */
 
     PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_equal);
 
@@ -300,4 +283,45 @@ extern "C" {
         PG_RETURN_NULL();
     }
 
+    /*
+     * Other functions
+     */
+
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(parse_phone_number);
+
+    PGDLLEXPORT Datum
+    parse_phone_number(PG_FUNCTION_ARGS) {
+        try {
+            const text* number_text = PG_GETARG_TEXT_P(0);
+            const text* country_text = PG_GETARG_TEXT_P(1);
+
+            char* number_str = text_to_c_string(number_text);
+            char* country = text_to_c_string(country_text);
+
+            ShortPhoneNumber* number = parse_phone_number(number_str, country);
+            //TODO: prevent leaks.
+            pfree(number_str);
+            pfree(country);
+            if(number) {
+                PG_RETURN_POINTER(number);
+            } else {
+                PG_RETURN_NULL();
+            }
+        } catch(std::exception& e) {
+            reportException(e);
+        }
+    }
+
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_country_code);
+
+    PGDLLEXPORT Datum
+    phone_number_country_code(PG_FUNCTION_ARGS) {
+        try {
+            const ShortPhoneNumber* number = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+
+            PG_RETURN_INT32(number->country_code());
+        } catch(std::exception& e) {
+            reportException(e);
+        }
+    }
 }

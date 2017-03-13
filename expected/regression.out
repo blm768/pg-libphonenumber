@@ -15,3 +15,11 @@ DETAIL:  National number is too long
 select parse_phone_number('555-555-55555555555', 'US');
 ERROR:  unable to parse '555-555-55555555555' as a phone number
 DETAIL:  National number is too long
+-- Do we get correct country codes?
+-- TODO: expand.
+select phone_number_country_code(parse_phone_number('+1-555-555-5555', 'USA'));
+ phone_number_country_code 
+---------------------------
+                         1
+(1 row)
+

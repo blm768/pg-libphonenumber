@@ -1,9 +1,11 @@
--- complain if script is sourced in psql, rather than via CREATE EXTENSION
+-- Complain if script is sourced in psql, rather than via CREATE EXTENSION
 \echo Use "CREATE EXTENSION pg_libphonenumber" to load this file. \quit
 
-CREATE TYPE phone_number;
+--
+-- Phone number type
+--
 
---Basic function definitions
+CREATE TYPE phone_number;
 
 CREATE FUNCTION phone_number_in(cstring) RETURNS phone_number
     LANGUAGE c IMMUTABLE STRICT
@@ -31,12 +33,16 @@ CREATE TYPE phone_number (
     STORAGE = plain
 );
 
---Cast definitions
+--
+-- Casts
+--
 
 CREATE CAST (phone_number AS text)
     WITH INOUT;
 
---Operator definitions
+--
+-- Operators and indexing
+--
 
 CREATE FUNCTION phone_number_equal(phone_number, phone_number) RETURNS bool
     LANGUAGE c IMMUTABLE STRICT
@@ -137,9 +143,14 @@ CREATE OPERATOR CLASS phone_number_ops
         OPERATOR 5 >,
         FUNCTION 1 phone_number_cmp(phone_number, phone_number);
 
---General functions
+--
+-- General functions
+--
 
 CREATE FUNCTION parse_phone_number(text, text) RETURNS phone_number
     LANGUAGE c IMMUTABLE STRICT
     AS 'pg_libphonenumber', 'parse_phone_number';
 
+CREATE FUNCTION phone_number_country_code(phone_number) RETURNS integer
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_country_code';

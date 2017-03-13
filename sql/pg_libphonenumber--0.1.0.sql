@@ -22,7 +22,7 @@ CREATE FUNCTION phone_number_send(phone_number) RETURNS bytea
     AS 'pg_libphonenumber', 'phone_number_send';
 
 CREATE TYPE phone_number (
-    INTERNALLENGTH = SIZEOF_PHONE_NUMBER,
+    INTERNALLENGTH = 8,
     INPUT = phone_number_in,
     OUTPUT = phone_number_out,
     RECEIVE = phone_number_recv,
@@ -41,8 +41,6 @@ CREATE CAST (phone_number AS text)
 CREATE FUNCTION phone_number_equal(phone_number, phone_number) RETURNS bool
     LANGUAGE c IMMUTABLE STRICT
     AS 'pg_libphonenumber', 'phone_number_equal';
-
--- TODO: make these operators strict.
 
 CREATE OPERATOR = (
     leftarg = phone_number,
@@ -145,4 +143,3 @@ CREATE FUNCTION parse_phone_number(text, text) RETURNS phone_number
     LANGUAGE c IMMUTABLE STRICT
     AS 'pg_libphonenumber', 'parse_phone_number';
 
--- vim:syntax=sql

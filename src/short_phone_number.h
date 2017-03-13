@@ -73,29 +73,32 @@ class ShortPhoneNumber {
     }
 
     google::protobuf::uint32 country_code() const {
-        return getMasked(_data, COUNTRY_CODE_BITS, COUNTRY_CODE_OFFSET);
+        return get_masked(_data, COUNTRY_CODE_BITS, COUNTRY_CODE_OFFSET);
     }
 
     void country_code(google::protobuf::uint32 value) {
-        _data = setMasked(_data, (google::protobuf::uint64)value, COUNTRY_CODE_BITS, COUNTRY_CODE_OFFSET);
+        _data = set_masked(_data, (google::protobuf::uint64)value, COUNTRY_CODE_BITS, COUNTRY_CODE_OFFSET);
     }
 
     google::protobuf::uint64 national_number() const {
-        return getMasked(_data, NATIONAL_NUMBER_BITS, NATIONAL_NUMBER_OFFSET);
+        return get_masked(_data, NATIONAL_NUMBER_BITS, NATIONAL_NUMBER_OFFSET);
     }
 
     void national_number(google::protobuf::uint64 value) {
-        _data = setMasked(_data, value, NATIONAL_NUMBER_BITS, NATIONAL_NUMBER_OFFSET);
+        _data = set_masked(_data, value, NATIONAL_NUMBER_BITS, NATIONAL_NUMBER_OFFSET);
     }
 
     google::protobuf::uint64 leading_zeros() const {
-        return getMasked(_data, LEADING_ZEROS_BITS, LEADING_ZEROS_OFFSET);
+        return get_masked(_data, LEADING_ZEROS_BITS, LEADING_ZEROS_OFFSET);
     }
 
     void leading_zeros(google::protobuf::uint64 value) {
-        _data = setMasked(_data, value, LEADING_ZEROS_BITS, LEADING_ZEROS_OFFSET);
+        _data = set_masked(_data, value, LEADING_ZEROS_BITS, LEADING_ZEROS_OFFSET);
     }
 
     private:
     google::protobuf::uint64 _data;
 };
+
+// If the size changes, we'll need to update the extension script too.
+static_assert(sizeof(ShortPhoneNumber) == 8);

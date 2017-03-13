@@ -31,7 +31,7 @@ T clip(const T& n, const T& lower, const T& upper) {
 /**
  * Converts a text object to a C-style string
  */
-static char* textToCString(const text* text) {
+static char* text_to_c_string(const text* text) {
     size_t len = VARSIZE(text) - VARHDRSZ;
     char* str = (char*)palloc(len + 1);
     memcpy(str, VARDATA(text), len);
@@ -41,7 +41,9 @@ static char* textToCString(const text* text) {
 
 //Internal function used by phone_number_in and parse_phone_number
 //TODO: take a std::string to minimize copying?
-ShortPhoneNumber* parsePhoneNumber(const char* number_str, const char* country) {
+//TODO: rename this so we're not relying on overloading to distinguish this from
+// its extern "C" counterpart.
+ShortPhoneNumber* parse_phone_number(const char* number_str, const char* country) {
     PhoneNumber number;
     ShortPhoneNumber* short_number;
 
@@ -82,7 +84,7 @@ extern "C" {
             const char *number_str = PG_GETARG_CSTRING(0);
 
             //TODO: use international format instead.
-            ShortPhoneNumber* number = parsePhoneNumber(number_str, "US");
+            ShortPhoneNumber* number = parse_phone_number(number_str, "US");
             if(number) {
                 PG_RETURN_POINTER(number);
             } else {
@@ -101,10 +103,10 @@ extern "C" {
             const text* number_text = PG_GETARG_TEXT_P(0);
             const text* country_text = PG_GETARG_TEXT_P(1);
 
-            char* number_str = textToCString(number_text);
-            char* country = textToCString(country_text);
+            char* number_str = text_to_c_string(number_text);
+            char* country = text_to_c_string(country_text);
 
-            ShortPhoneNumber* number = parsePhoneNumber(number_str, country);
+            ShortPhoneNumber* number = parse_phone_number(number_str, country);
             //TODO: prevent leaks.
             pfree(number_str);
             pfree(country);

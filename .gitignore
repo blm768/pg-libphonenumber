@@ -1,8 +1,6 @@
 *.swp
 *.o
 *.so
-/tools/get_sizeof_phone_number
-/pg_libphonenumber--*.sql
 regression.diffs
 regression.out
 /results/

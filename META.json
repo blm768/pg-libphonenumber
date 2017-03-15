@@ -3,7 +3,7 @@
     "abstract": "Stores and manipulates phone numbers using Google's libphonenumber",
     "version": "0.1.0",
     "maintainer": "Benjamin L. Merritt <blm768@gmail.com>",
-    "license": "apache",
+    "license": "apache_2_0",
     "provides": {
       "pg_libphonenumber": {
          "abstract": "Stores and manipulates phone numbers using Google's libphonenumber",

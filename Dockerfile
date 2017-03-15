@@ -3,7 +3,7 @@ FROM postgres:9.6
 
 RUN apt-get update && apt-get install -y \
     build-essential \
-    postgresql-server-dev-9.6 \
+    postgresql-server-dev-${PG_MAJOR} \
     libphonenumber6 \
     sudo
 

@@ -96,6 +96,7 @@ extern "C" {
             }
         } catch(std::exception& e) {
             reportException(e);
+            PG_RETURN_NULL();
         }
     }
 
@@ -309,6 +310,7 @@ extern "C" {
             }
         } catch(std::exception& e) {
             reportException(e);
+            PG_RETURN_NULL();
         }
     }
 
@@ -322,6 +324,7 @@ extern "C" {
             PG_RETURN_INT32(number->country_code());
         } catch(std::exception& e) {
             reportException(e);
+            PG_RETURN_NULL();
         }
     }
 }

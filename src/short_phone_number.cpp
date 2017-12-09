@@ -6,7 +6,7 @@ using namespace i18n::phonenumbers;
 const PhoneNumberUtil* const PhoneNumberTooLongException::phoneUtil = PhoneNumberUtil::GetInstance();
 
 PhoneNumberTooLongException::PhoneNumberTooLongException(const PhoneNumber& number, const char* msg) :
-    _number(number), std::runtime_error(msg) {};
+    std::runtime_error(msg), _number(number) {};
 
 std::string PhoneNumberTooLongException::number_string() const {
     std::string formatted;

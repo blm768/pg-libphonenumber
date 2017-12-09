@@ -1,4 +1,4 @@
-# pg_libphonenumber
+# `pg_libphonenumber`
 
 A (partially implemented!) PostgreSQL extension that provides access to
 [Google's `libphonenumber`](https://github.com/googlei18n/libphonenumber)
@@ -52,5 +52,5 @@ For convenience, we provide a Docker image that sets up a test environment.
 
 ```shell-script
 make docker-image
-docker run pg_libphonenumber
+docker run -it pg_libphonenumber
 ```

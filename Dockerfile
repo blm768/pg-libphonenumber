@@ -1,4 +1,4 @@
-FROM postgres:10-beta1
+FROM postgres:10
 
 RUN apt-get update && apt-get install -y \
     build-essential \

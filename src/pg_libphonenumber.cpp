@@ -274,9 +274,9 @@ extern "C" {
             const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
             const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
 
-            int64 compared = number1->compare_fast(*number2);
+            int64_t compared = number1->compare_fast(*number2);
 
-            PG_RETURN_INT32(clip<int64>(compared, -1, 1));
+            PG_RETURN_INT32(clip<int64_t>(compared, -1, 1));
         } catch(std::exception& e) {
             reportException(e);
         }

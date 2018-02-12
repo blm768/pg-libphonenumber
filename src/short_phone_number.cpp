@@ -21,7 +21,7 @@ ShortPhoneNumber::ShortPhoneNumber(i18n::phonenumbers::PhoneNumber number) {
     }
     this->country_code(country_code);
 
-    uint64 national_number = number.national_number();
+    uint64_t national_number = number.national_number();
     if(national_number > MAX_NATIONAL_NUMBER) {
         throw PhoneNumberTooLongException(number, "National number is too long");
     }

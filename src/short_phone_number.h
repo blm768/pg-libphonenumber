@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <exception>
 #include <string>
 
@@ -81,7 +82,7 @@ class ShortPhoneNumber {
      * - 0 (if a == b)
      * - >0 (if a > b)
      */
-    google::protobuf::int64 compare_fast(ShortPhoneNumber other) const {
+    int64_t compare_fast(ShortPhoneNumber other) const {
         return other._data - this->_data;
     }
 
@@ -91,32 +92,32 @@ class ShortPhoneNumber {
     }
 
     /// Sets the number's country code
-    void country_code(google::protobuf::uint32 value) {
-        _data = set_masked(_data, (google::protobuf::uint64)value, COUNTRY_CODE_BITS, COUNTRY_CODE_OFFSET);
+    void country_code(uint32_t value) {
+        _data = set_masked(_data, static_cast<uint64_t>(value), COUNTRY_CODE_BITS, COUNTRY_CODE_OFFSET);
     }
 
     /// Returns the national number
-    google::protobuf::uint64 national_number() const {
+    uint64_t national_number() const {
         return get_masked(_data, NATIONAL_NUMBER_BITS, NATIONAL_NUMBER_OFFSET);
     }
 
     /// Sets the national number
-    void national_number(google::protobuf::uint64 value) {
+    void national_number(uint64_t value) {
         _data = set_masked(_data, value, NATIONAL_NUMBER_BITS, NATIONAL_NUMBER_OFFSET);
     }
 
     /// Returns the number of leading zeros
-    google::protobuf::uint64 leading_zeros() const {
+    uint64_t leading_zeros() const {
         return get_masked(_data, LEADING_ZEROS_BITS, LEADING_ZEROS_OFFSET);
     }
 
     /// Sets the number of leading zeros
-    void leading_zeros(google::protobuf::uint64 value) {
+    void leading_zeros(uint64_t value) {
         _data = set_masked(_data, value, LEADING_ZEROS_BITS, LEADING_ZEROS_OFFSET);
     }
 
     private:
-    google::protobuf::uint64 _data;
+    uint64_t _data;
 };
 
 /*

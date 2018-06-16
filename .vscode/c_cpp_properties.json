@@ -28,6 +28,7 @@
             "includePath": [
                 "/usr/include",
                 "/usr/local/include",
+                "/usr/include/postgresql/server",
                 "${workspaceRoot}"
             ],
             "defines": [],
@@ -75,15 +76,7 @@
             "intelliSenseMode": "clang-x64",
             "includePath": [
                 "${workspaceRoot}",
-                "${workspaceRoot}/src",
-                "${localappdata}/lxss/rootfs/usr/include/c++/5",
-                "${localappdata}/lxss/rootfs/usr/include/x86_64-linux-gnu/c++/5",
-                "${localappdata}/lxss/rootfs/usr/include/c++/5/backward",
-                "${localappdata}/lxss/rootfs/usr/lib/gcc/x86_64-linux-gnu/5/include",
-                "${localappdata}/lxss/rootfs/usr/local/include",
-                "${localappdata}/lxss/rootfs/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed",
-                "${localappdata}/lxss/rootfs/usr/include/x86_64-linux-gnu",
-                "${localappdata}/lxss/rootfs/usr/include"
+                "${workspaceRoot}/src"
             ],
             "defines": [
                 "__linux__",
@@ -106,5 +99,5 @@
             }
         }
     ],
-    "version": 3
+    "version": 4
 }

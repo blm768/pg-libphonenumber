@@ -1,7 +1,7 @@
-*.swp
-*.o
-*.so
-regression.diffs
-regression.out
+/**/*.o
+/**/*.so
+
 /results/
 
+/regression.diffs
+/regression.out

@@ -49,8 +49,4 @@ sudo make install
 ## Running tests
 
 For convenience, we provide a Docker image that sets up a test environment.
-
-```shell-script
-make docker-image
-docker run -it pg_libphonenumber
-```
+Run the script `./run-tests.sh` to build and run the image.

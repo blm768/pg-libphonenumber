@@ -1,2 +1,9 @@
 /.git
 /.vscode
+/**/*.o
+/**/*.so
+
+/results/
+
+/regression.diffs
+/regression.out

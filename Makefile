@@ -30,9 +30,3 @@ SHLIB_LINK := -lphonenumber -lstdc++
 PG_CONFIG := pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
-
-# Docker stuff
-.PHONY: docker-image
-
-docker-image: clean
-	docker build -t pg_libphonenumber .

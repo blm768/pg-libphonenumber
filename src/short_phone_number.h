@@ -33,34 +33,28 @@ class PhoneNumberTooLongException : public std::runtime_error {
  */
 class ShortPhoneNumber {
     public:
-    enum : size_t {
-        /// The largest possible country code
-        MAX_COUNTRY_CODE = 999,
-        /// The maximum number of leading zeroes in a national phone number
-        MAX_LEADING_ZEROS = 15,
-        /// The largest possible national number
-        MAX_NATIONAL_NUMBER = 999999999999999,
-    };
+    /// The largest possible country code
+    static constexpr size_t max_country_code = 999;
+    /// The maximum number of leading zeroes in a national phone number
+    static constexpr size_t max_leading_zeros = 15;
+    /// The largest possible national number
+    static constexpr size_t max_national_number = 999999999999999;
 
-    enum : size_t {
-        /// The number of bits reserved for a country code
-        COUNTRY_CODE_BITS = 10,
-        /// The number of bits reserved for the leading zero count
-        LEADING_ZEROS_BITS = 4,
-        /// The number of bits reserved for the national number
-        NATIONAL_NUMBER_BITS = 50,
-    };
+    /// The number of bits reserved for a country code
+    static constexpr size_t country_code_bits = 10;
+    /// The number of bits reserved for the leading zero count
+    static constexpr size_t leading_zeros_bits = 4;
+    /// The number of bits reserved for the national number
+    static constexpr size_t national_number_bits = 50;
 
     // Bit offsets of the number components
-    enum : size_t {
-        COUNTRY_CODE_OFFSET = 0,
-        LEADING_ZEROS_OFFSET = COUNTRY_CODE_OFFSET + COUNTRY_CODE_BITS,
-        NATIONAL_NUMBER_OFFSET = LEADING_ZEROS_OFFSET + LEADING_ZEROS_BITS,
-    };
+    static constexpr size_t country_code_offset = 0;
+    static constexpr size_t leading_zeros_offset = country_code_offset + country_code_bits;
+    static constexpr size_t national_number_offset = leading_zeros_offset + leading_zeros_bits;
 
     ShortPhoneNumber(i18n::phonenumbers::PhoneNumber number);
 
-    bool operator == (const ShortPhoneNumber other) const {
+    bool operator==(const ShortPhoneNumber other) const {
         return this->_data == other._data;
     }
 
@@ -88,32 +82,32 @@ class ShortPhoneNumber {
 
     /// Returns the number's country code
     google::protobuf::uint32 country_code() const {
-        return get_masked(_data, COUNTRY_CODE_BITS, COUNTRY_CODE_OFFSET);
+        return get_masked(_data, country_code_bits, country_code_offset);
     }
 
     /// Sets the number's country code
     void country_code(uint32_t value) {
-        _data = set_masked(_data, static_cast<uint64_t>(value), COUNTRY_CODE_BITS, COUNTRY_CODE_OFFSET);
+        _data = set_masked(_data, static_cast<uint64_t>(value), country_code_bits, country_code_offset);
     }
 
     /// Returns the national number
     uint64_t national_number() const {
-        return get_masked(_data, NATIONAL_NUMBER_BITS, NATIONAL_NUMBER_OFFSET);
+        return get_masked(_data, national_number_bits, national_number_offset);
     }
 
     /// Sets the national number
     void national_number(uint64_t value) {
-        _data = set_masked(_data, value, NATIONAL_NUMBER_BITS, NATIONAL_NUMBER_OFFSET);
+        _data = set_masked(_data, value, national_number_bits, national_number_offset);
     }
 
     /// Returns the number of leading zeros
     uint64_t leading_zeros() const {
-        return get_masked(_data, LEADING_ZEROS_BITS, LEADING_ZEROS_OFFSET);
+        return get_masked(_data, leading_zeros_bits, leading_zeros_offset);
     }
 
     /// Sets the number of leading zeros
     void leading_zeros(uint64_t value) {
-        _data = set_masked(_data, value, LEADING_ZEROS_BITS, LEADING_ZEROS_OFFSET);
+        _data = set_masked(_data, value, leading_zeros_bits, leading_zeros_offset);
     }
 
     private:
@@ -124,4 +118,4 @@ class ShortPhoneNumber {
  * If the size of the ShortPhoneNumber class changes for any reason, it will trip this assertion and remind us to
  * update the SQL definition of the short_phone_number type.
  */
-static_assert(sizeof(ShortPhoneNumber) == 8);
+static_assert(sizeof(ShortPhoneNumber) == 8, "unexpected size for ShortPhoneNumber");

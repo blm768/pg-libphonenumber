@@ -16,20 +16,20 @@ std::string PhoneNumberTooLongException::number_string() const {
 
 ShortPhoneNumber::ShortPhoneNumber(i18n::phonenumbers::PhoneNumber number) {
     uint32 country_code = number.country_code();
-    if(country_code > MAX_COUNTRY_CODE) {
+    if(country_code > max_country_code) {
         throw PhoneNumberTooLongException(number, "Country code is too long");
     }
     this->country_code(country_code);
 
     uint64_t national_number = number.national_number();
-    if(national_number > MAX_NATIONAL_NUMBER) {
+    if(national_number > max_national_number) {
         throw PhoneNumberTooLongException(number, "National number is too long");
     }
     this->national_number(national_number);
 
     if(number.has_number_of_leading_zeros()) {
         uint32 leading_zeros = number.number_of_leading_zeros();
-        if(leading_zeros > MAX_LEADING_ZEROS) {
+        if(leading_zeros > max_leading_zeros) {
             throw PhoneNumberTooLongException(number, "Too many leading zeros");
         }
         this->leading_zeros(leading_zeros);

@@ -15,7 +15,7 @@ MODULE_big := pg_libphonenumber
 OBJS := $(patsubst %.cpp,%.o,$(cpp_files))
 
 # C flags
-PG_CPPFLAGS := -fPIC -std=gnu++14
+PG_CPPFLAGS := -fPIC -std=c++14
 PG_CPPFLAGS += -Isrc/ -I/usr/include
 PG_CPPFLAGS += -Wall -Wextra
 ifeq ($(CONFIG),debug)

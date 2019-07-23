@@ -9,6 +9,7 @@
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
+            "cppStandard": "c++14",
             "browse": {
                 "path": [
                     "/usr/include",
@@ -33,6 +34,7 @@
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
+            "cppStandard": "c++14",
             "browse": {
                 "path": [
                     "/usr/include",
@@ -58,6 +60,7 @@
                 "UNICODE"
             ],
             "intelliSenseMode": "msvc-x64",
+            "cppStandard": "c++14",
             "browse": {
                 "path": [
                     "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include/*",
@@ -74,6 +77,7 @@
         {
             "name": "WSL",
             "intelliSenseMode": "clang-x64",
+            "cppStandard": "c++14",
             "includePath": [
                 "${workspaceRoot}",
                 "${workspaceRoot}/src"

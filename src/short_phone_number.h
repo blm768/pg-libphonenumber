@@ -9,9 +9,9 @@
 #include "mask.h"
 
 /**
- * Raised when a phone number is too long to fit in a ShortPhoneNumber
+ * Raised when a phone number is too long to fit in a PackedPhoneNumber
  * 
- * This shouldn't happen for any valid phone numbers.
+ * This shouldn't happen for any phone numbers that meet ITU specifications.
  */
 class PhoneNumberTooLongException : public std::runtime_error {
     public:
@@ -33,7 +33,7 @@ class PhoneNumberTooLongException : public std::runtime_error {
 /**
  * Stores a phone number (packed into a 64-bit integer)
  */
-class ShortPhoneNumber {
+class PackedPhoneNumber {
     public:
     /// The largest possible country code
     static constexpr size_t max_country_code = 999;
@@ -54,13 +54,13 @@ class ShortPhoneNumber {
     static constexpr size_t leading_zeros_offset = country_code_offset + country_code_bits;
     static constexpr size_t national_number_offset = leading_zeros_offset + leading_zeros_bits;
 
-    ShortPhoneNumber(i18n::phonenumbers::PhoneNumber number);
+    PackedPhoneNumber(i18n::phonenumbers::PhoneNumber number);
 
-    bool operator==(const ShortPhoneNumber other) const {
+    bool operator==(const PackedPhoneNumber other) const {
         return this->_data == other._data;
     }
 
-    bool operator != (const ShortPhoneNumber other) const {
+    bool operator != (const PackedPhoneNumber other) const {
         return !(*this == other);
     }
 
@@ -68,7 +68,7 @@ class ShortPhoneNumber {
     operator i18n::phonenumbers::PhoneNumber() const;
 
     /*
-     * Compares to another ShortPhoneNumber using a fast collation heuristic
+     * Compares to another PackedPhoneNumber using a fast collation heuristic
      *
      * May not produce intuitive results for numbers with the same
      * country code but different lengths
@@ -78,7 +78,7 @@ class ShortPhoneNumber {
      * - 0 (if a == b)
      * - >0 (if a > b)
      */
-    int64_t compare_fast(ShortPhoneNumber other) const {
+    int64_t compare_fast(PackedPhoneNumber other) const {
         return other._data - this->_data;
     }
 
@@ -117,7 +117,7 @@ class ShortPhoneNumber {
 };
 
 /*
- * If the size of the ShortPhoneNumber class changes for any reason, it will trip this assertion and remind us to
+ * If the size of the PackedPhoneNumber class changes for any reason, it will trip this assertion and remind us to
  * update the SQL definition of the short_phone_number type.
  */
-static_assert(sizeof(ShortPhoneNumber) == 8, "unexpected size for ShortPhoneNumber");
+static_assert(sizeof(PackedPhoneNumber) == 8, "unexpected size for PackedPhoneNumber");

@@ -13,14 +13,10 @@ get it there.
 
 ```sql
 CREATE EXTENSION pg_libphonenumber;
-SELECT parse_phone_number('03 7010 1234', 'AU');
-SELECT parse_phone_number('2819010011', 'US');
+SELECT parse_packed_phone_number('03 7010 1234', 'AU');
+SELECT parse_packed_phone_number('2819010011', 'US');
 
-CREATE TABLE foo ( ph phone_number );
-
--- DO NOT RELY ON THIS
--- may not always this work way with implicit cast.
-SELECT '2819010011'::phone_number; -- assumes US
+CREATE TABLE foo ( ph packed_phone_number );
 ```
 
 ## Installation

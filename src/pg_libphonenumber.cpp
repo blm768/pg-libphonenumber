@@ -39,15 +39,13 @@ static char* text_to_c_string(const text* text) {
     return str;
 }
 
-//Internal function used by phone_number_in and parse_phone_number
+//Internal function used by packed_phone_number_in and parse_packed_phone_number
 //TODO: take a std::string to minimize copying?
-//TODO: rename this so we're not relying on overloading to distinguish this from
-// its extern "C" counterpart.
-ShortPhoneNumber* parse_phone_number(const char* number_str, const char* country) {
+PackedPhoneNumber* do_parse_packed_phone_number(const char* number_str, const char* country) {
     PhoneNumber number;
-    ShortPhoneNumber* short_number;
+    PackedPhoneNumber* short_number;
 
-    short_number = (ShortPhoneNumber*)palloc0(sizeof(ShortPhoneNumber));
+    short_number = (PackedPhoneNumber*)palloc0(sizeof(PackedPhoneNumber));
     if(short_number == nullptr) {
         throw std::bad_alloc();
     }
@@ -56,7 +54,7 @@ ShortPhoneNumber* parse_phone_number(const char* number_str, const char* country
     error = phoneUtil->Parse(number_str, country, &number);
     if(error == PhoneNumberUtil::NO_PARSING_ERROR) {
         //Initialize short_number using placement new.
-        new(short_number) ShortPhoneNumber(number);
+        new(short_number) PackedPhoneNumber(number);
         return short_number;
     } else {
         reportParseError(number_str, error);
@@ -80,15 +78,15 @@ extern "C" {
      * I/O functions
      */
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_in);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_in);
 
     PGDLLEXPORT Datum
-    phone_number_in(PG_FUNCTION_ARGS) {
+    packed_phone_number_in(PG_FUNCTION_ARGS) {
         try {
             const char *number_str = PG_GETARG_CSTRING(0);
 
             //TODO: use international format instead.
-            ShortPhoneNumber* number = parse_phone_number(number_str, "US");
+            PackedPhoneNumber* number = do_parse_packed_phone_number(number_str, "US");
             if(number) {
                 PG_RETURN_POINTER(number);
             } else {
@@ -100,12 +98,12 @@ extern "C" {
         }
     }
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_out);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_out);
 
     PGDLLEXPORT Datum
-    phone_number_out(PG_FUNCTION_ARGS) {
+    packed_phone_number_out(PG_FUNCTION_ARGS) {
         try {
-            const ShortPhoneNumber* short_number = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+            const PackedPhoneNumber* short_number = (PackedPhoneNumber*)PG_GETARG_POINTER(0);
             PhoneNumber number = *short_number;
 
             std::string formatted;
@@ -129,17 +127,17 @@ extern "C" {
         PG_RETURN_NULL();
     }
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_recv);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_recv);
 
     PGDLLEXPORT Datum
-    phone_number_recv(PG_FUNCTION_ARGS) {
+    packed_phone_number_recv(PG_FUNCTION_ARGS) {
         try {
             StringInfo buf = (StringInfo)PG_GETARG_POINTER(0);
-            ShortPhoneNumber* number;
+            PackedPhoneNumber* number;
 
-            number = (ShortPhoneNumber*)palloc(sizeof(ShortPhoneNumber));
+            number = (PackedPhoneNumber*)palloc(sizeof(PackedPhoneNumber));
             //TODO: make portable (fix endianness issues, etc.).
-            pq_copymsgbytes(buf, (char*)number, sizeof(ShortPhoneNumber));
+            pq_copymsgbytes(buf, (char*)number, sizeof(PackedPhoneNumber));
             PG_RETURN_POINTER(number);
         } catch (const std::exception& e) {
             reportException(e);
@@ -148,16 +146,16 @@ extern "C" {
         PG_RETURN_NULL();
     }
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_send);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_send);
 
     PGDLLEXPORT Datum
-    phone_number_send(PG_FUNCTION_ARGS) {
+    packed_phone_number_send(PG_FUNCTION_ARGS) {
         try {
-            const ShortPhoneNumber *number = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+            const PackedPhoneNumber *number = (PackedPhoneNumber*)PG_GETARG_POINTER(0);
             StringInfoData buf;
 
             pq_begintypsend(&buf);
-            pq_sendbytes(&buf, (const char*)number, sizeof(ShortPhoneNumber));
+            pq_sendbytes(&buf, (const char*)number, sizeof(PackedPhoneNumber));
             PG_RETURN_BYTEA_P(pq_endtypsend(&buf));
         } catch (const std::exception& e) {
             reportException(e);
@@ -170,13 +168,13 @@ extern "C" {
      * Operator functions
      */
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_equal);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_equal);
 
     PGDLLEXPORT Datum
-    phone_number_equal(PG_FUNCTION_ARGS) {
+    packed_phone_number_equal(PG_FUNCTION_ARGS) {
         try {
-            const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
-            const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+            const PackedPhoneNumber* number1 = (PackedPhoneNumber*)PG_GETARG_POINTER(0);
+            const PackedPhoneNumber* number2 = (PackedPhoneNumber*)PG_GETARG_POINTER(1);
 
             PG_RETURN_BOOL(*number1 == *number2);
         } catch(std::exception& e) {
@@ -186,13 +184,13 @@ extern "C" {
         PG_RETURN_NULL();
     }
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_not_equal);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_not_equal);
 
     PGDLLEXPORT Datum
-    phone_number_not_equal(PG_FUNCTION_ARGS) {
+    packed_phone_number_not_equal(PG_FUNCTION_ARGS) {
         try {
-            const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
-            const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+            const PackedPhoneNumber* number1 = (PackedPhoneNumber*)PG_GETARG_POINTER(0);
+            const PackedPhoneNumber* number2 = (PackedPhoneNumber*)PG_GETARG_POINTER(1);
 
             PG_RETURN_BOOL(*number1 != *number2);
         } catch(std::exception& e) {
@@ -202,13 +200,13 @@ extern "C" {
         PG_RETURN_NULL();
     }
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_less);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_less);
 
     PGDLLEXPORT Datum
-    phone_number_less(PG_FUNCTION_ARGS) {
+    packed_phone_number_less(PG_FUNCTION_ARGS) {
         try {
-            const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
-            const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+            const PackedPhoneNumber* number1 = (PackedPhoneNumber*)PG_GETARG_POINTER(0);
+            const PackedPhoneNumber* number2 = (PackedPhoneNumber*)PG_GETARG_POINTER(1);
 
             PG_RETURN_BOOL(number1->compare_fast(*number2) < 0);
         } catch(std::exception& e) {
@@ -218,13 +216,13 @@ extern "C" {
         PG_RETURN_NULL();
     }
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_less_or_equal);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_less_or_equal);
 
     PGDLLEXPORT Datum
-    phone_number_less_or_equal(PG_FUNCTION_ARGS) {
+    packed_phone_number_less_or_equal(PG_FUNCTION_ARGS) {
         try {
-            const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
-            const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+            const PackedPhoneNumber* number1 = (PackedPhoneNumber*)PG_GETARG_POINTER(0);
+            const PackedPhoneNumber* number2 = (PackedPhoneNumber*)PG_GETARG_POINTER(1);
 
             PG_RETURN_BOOL(number1->compare_fast(*number2) <= 0);
         } catch(std::exception& e) {
@@ -234,13 +232,13 @@ extern "C" {
         PG_RETURN_NULL();
     }
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_greater);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_greater);
 
     PGDLLEXPORT Datum
-    phone_number_greater(PG_FUNCTION_ARGS) {
+    packed_phone_number_greater(PG_FUNCTION_ARGS) {
         try {
-            const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
-            const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+            const PackedPhoneNumber* number1 = (PackedPhoneNumber*)PG_GETARG_POINTER(0);
+            const PackedPhoneNumber* number2 = (PackedPhoneNumber*)PG_GETARG_POINTER(1);
 
             PG_RETURN_BOOL(number1->compare_fast(*number2) > 0);
         } catch(std::exception& e) {
@@ -250,13 +248,13 @@ extern "C" {
         PG_RETURN_NULL();
     }
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_greater_or_equal);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_greater_or_equal);
 
     PGDLLEXPORT Datum
-    phone_number_greater_or_equal(PG_FUNCTION_ARGS) {
+    packed_phone_number_greater_or_equal(PG_FUNCTION_ARGS) {
         try {
-            const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
-            const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+            const PackedPhoneNumber* number1 = (PackedPhoneNumber*)PG_GETARG_POINTER(0);
+            const PackedPhoneNumber* number2 = (PackedPhoneNumber*)PG_GETARG_POINTER(1);
 
             PG_RETURN_BOOL(number1->compare_fast(*number2) >= 0);
         } catch(std::exception& e) {
@@ -266,13 +264,13 @@ extern "C" {
         PG_RETURN_NULL();
     }
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_cmp);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_cmp);
 
     PGDLLEXPORT Datum
-    phone_number_cmp(PG_FUNCTION_ARGS) {
+    packed_phone_number_cmp(PG_FUNCTION_ARGS) {
         try {
-            const ShortPhoneNumber* number1 = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
-            const ShortPhoneNumber* number2 = (ShortPhoneNumber*)PG_GETARG_POINTER(1);
+            const PackedPhoneNumber* number1 = (PackedPhoneNumber*)PG_GETARG_POINTER(0);
+            const PackedPhoneNumber* number2 = (PackedPhoneNumber*)PG_GETARG_POINTER(1);
 
             int64_t compared = number1->compare_fast(*number2);
 
@@ -288,10 +286,10 @@ extern "C" {
      * Other functions
      */
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(parse_phone_number);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(parse_packed_phone_number);
 
     PGDLLEXPORT Datum
-    parse_phone_number(PG_FUNCTION_ARGS) {
+    parse_packed_phone_number(PG_FUNCTION_ARGS) {
         try {
             const text* number_text = PG_GETARG_TEXT_P(0);
             const text* country_text = PG_GETARG_TEXT_P(1);
@@ -299,7 +297,7 @@ extern "C" {
             char* number_str = text_to_c_string(number_text);
             char* country = text_to_c_string(country_text);
 
-            ShortPhoneNumber* number = parse_phone_number(number_str, country);
+            PackedPhoneNumber* number = do_parse_packed_phone_number(number_str, country);
             //TODO: prevent leaks.
             pfree(number_str);
             pfree(country);
@@ -314,12 +312,12 @@ extern "C" {
         }
     }
 
-    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_country_code);
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_country_code);
 
     PGDLLEXPORT Datum
-    phone_number_country_code(PG_FUNCTION_ARGS) {
+    packed_phone_number_country_code(PG_FUNCTION_ARGS) {
         try {
-            const ShortPhoneNumber* number = (ShortPhoneNumber*)PG_GETARG_POINTER(0);
+            const PackedPhoneNumber* number = (PackedPhoneNumber*)PG_GETARG_POINTER(0);
 
             PG_RETURN_INT32(number->country_code());
         } catch(std::exception& e) {

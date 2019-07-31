@@ -14,7 +14,7 @@ std::string PhoneNumberTooLongException::number_string() const {
     return formatted;
 }
 
-ShortPhoneNumber::ShortPhoneNumber(i18n::phonenumbers::PhoneNumber number) {
+PackedPhoneNumber::PackedPhoneNumber(i18n::phonenumbers::PhoneNumber number) {
     uint32 country_code = number.country_code();
     if(country_code > max_country_code) {
         throw PhoneNumberTooLongException(number, "Country code is too long");
@@ -38,7 +38,7 @@ ShortPhoneNumber::ShortPhoneNumber(i18n::phonenumbers::PhoneNumber number) {
     }
 }
 
-ShortPhoneNumber::operator PhoneNumber() const {
+PackedPhoneNumber::operator PhoneNumber() const {
     PhoneNumber number;
     number.set_country_code(country_code());
     number.set_national_number(national_number());

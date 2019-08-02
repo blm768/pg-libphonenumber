@@ -17,7 +17,7 @@ using namespace i18n::phonenumbers;
 static const PhoneNumberUtil* const phoneUtil = PhoneNumberUtil::GetInstance();
 
 /**
- * Clips a value to the given (inclusive) range
+ * Clamps a value to the given (inclusive) range
  */
 template <typename T>
 T clamp(const T& n, const T& lower, const T& upper) {

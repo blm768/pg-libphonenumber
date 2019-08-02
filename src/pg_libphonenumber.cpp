@@ -20,7 +20,7 @@ static const PhoneNumberUtil* const phoneUtil = PhoneNumberUtil::GetInstance();
  * Clips a value to the given (inclusive) range
  */
 template <typename T>
-T clip(const T& n, const T& lower, const T& upper) {
+T clamp(const T& n, const T& lower, const T& upper) {
   return std::max(lower, std::min(n, upper));
 }
 
@@ -274,7 +274,7 @@ extern "C" {
 
             int64_t compared = number1->compare_fast(*number2);
 
-            PG_RETURN_INT32(clip<int64_t>(compared, -1, 1));
+            PG_RETURN_INT32(clamp<int64_t>(compared, -1, 1));
         } catch(std::exception& e) {
             reportException(e);
         }

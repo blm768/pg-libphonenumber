@@ -18,7 +18,7 @@ class PhoneNumberTooLongException : public std::runtime_error {
     PhoneNumberTooLongException(const i18n::phonenumbers::PhoneNumber& number, const char* msg);
 
     /// Returns the original phone number object
-    i18n::phonenumbers::PhoneNumber number() const {
+    const i18n::phonenumbers::PhoneNumber& number() const {
         return _number;
     }
 
@@ -26,8 +26,6 @@ class PhoneNumberTooLongException : public std::runtime_error {
     std::string number_string() const;
     private:
     i18n::phonenumbers::PhoneNumber _number;
-
-    static const i18n::phonenumbers::PhoneNumberUtil* const phoneUtil;
 };
 
 /**
@@ -54,7 +52,7 @@ class PackedPhoneNumber {
     static constexpr size_t leading_zeros_offset = country_code_offset + country_code_bits;
     static constexpr size_t national_number_offset = leading_zeros_offset + leading_zeros_bits;
 
-    PackedPhoneNumber(i18n::phonenumbers::PhoneNumber number);
+    PackedPhoneNumber(const i18n::phonenumbers::PhoneNumber& number);
 
     bool operator==(const PackedPhoneNumber other) const {
         return this->_data == other._data;

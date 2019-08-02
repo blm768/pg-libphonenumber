@@ -3,7 +3,9 @@
 using namespace google::protobuf;
 using namespace i18n::phonenumbers;
 
-const PhoneNumberUtil* const PhoneNumberTooLongException::phoneUtil = PhoneNumberUtil::GetInstance();
+namespace {
+    const PhoneNumberUtil* phoneUtil = PhoneNumberUtil::GetInstance();
+}
 
 PhoneNumberTooLongException::PhoneNumberTooLongException(const PhoneNumber& number, const char* msg) :
     std::runtime_error(msg), _number(number) {};
@@ -14,7 +16,8 @@ std::string PhoneNumberTooLongException::number_string() const {
     return formatted;
 }
 
-PackedPhoneNumber::PackedPhoneNumber(i18n::phonenumbers::PhoneNumber number) {
+PackedPhoneNumber::PackedPhoneNumber(const i18n::phonenumbers::PhoneNumber& number) {
+    // TODO: check has_national_number(), etc?
     uint32 country_code = number.country_code();
     if(country_code > max_country_code) {
         throw PhoneNumberTooLongException(number, "Country code is too long");

@@ -65,7 +65,7 @@ void reportException(const std::exception& exception) {
         std::string phone_number = too_long->number_string();
         phone_number += '\0';
         ereport(ERROR,
-            (errcode(ERRCODE_NUMERIC_VALUE_OUT_OF_RANGE),
+            (errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
                 errmsg("phone number '%s' is too long", phone_number.data()),
                 errdetail("%s", exception.what())));
         return;

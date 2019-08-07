@@ -9,4 +9,5 @@ make installcheck
 "$pg_ctl" "--pgdata=${PGDATA}" stop
 if [ -f regression.diffs ]; then
     cat regression.diffs
+    cat regression.out
 fi

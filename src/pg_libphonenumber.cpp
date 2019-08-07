@@ -11,9 +11,9 @@ extern "C" {
 
 #include "error_handling.h"
 #include "packed_phone_number.h"
+#include "phone_number.h"
 
-using namespace i18n::phonenumbers;
-
+using PhoneNumberUtil = i18n::phonenumbers::PhoneNumberUtil;
 static const PhoneNumberUtil* const phoneUtil = PhoneNumberUtil::GetInstance();
 
 /**
@@ -39,13 +39,27 @@ static char* text_to_c_string(const text* text) {
     return str;
 }
 
+//Internal function used by phone_number_in and parse_phone_number
+//TODO: take a std::string to minimize copying?
+PhoneNumber* do_parse_phone_number(const char* number_str, const char* country) {
+    i18n::phonenumbers::PhoneNumber number;
+
+    PhoneNumberUtil::ErrorType error;
+    error = phoneUtil->Parse(number_str, country, &number);
+    if(error == PhoneNumberUtil::NO_PARSING_ERROR) {
+        return PhoneNumber::make(number);
+    } else {
+        reportParseError(number_str, error);
+        return nullptr;
+    }
+    //TODO: check number validity.
+}
+
 //Internal function used by packed_phone_number_in and parse_packed_phone_number
 //TODO: take a std::string to minimize copying?
 PackedPhoneNumber* do_parse_packed_phone_number(const char* number_str, const char* country) {
-    PhoneNumber number;
-    PackedPhoneNumber* short_number;
-
-    short_number = (PackedPhoneNumber*)palloc0(sizeof(PackedPhoneNumber));
+    i18n::phonenumbers::PhoneNumber number;
+    PackedPhoneNumber* short_number = (PackedPhoneNumber*)palloc0(sizeof(PackedPhoneNumber));
     if(short_number == nullptr) {
         throw std::bad_alloc();
     }
@@ -78,6 +92,55 @@ extern "C" {
      * I/O functions
      */
 
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_in);
+
+    PGDLLEXPORT Datum
+    phone_number_in(PG_FUNCTION_ARGS) {
+        try {
+            const char *number_str = PG_GETARG_CSTRING(0);
+
+            //TODO: use international format instead.
+            PhoneNumber* number = do_parse_phone_number(number_str, "US");
+            if(number) {
+                PG_RETURN_POINTER(number);
+            } else {
+                PG_RETURN_NULL();
+            }
+        } catch(std::exception& e) {
+            reportException(e);
+            PG_RETURN_NULL();
+        }
+    }
+
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_out);
+
+    PGDLLEXPORT Datum
+    phone_number_out(PG_FUNCTION_ARGS) {
+        try {
+            const auto number = (const PhoneNumber*)PG_GETARG_POINTER(0);
+            i18n::phonenumbers::PhoneNumber converted = *number;
+
+            std::string formatted;
+            phoneUtil->Format(converted, PhoneNumberUtil::INTERNATIONAL, &formatted);
+
+            //Copy the formatted number to a C-style string.
+            //We must use the PostgreSQL allocator, not new/malloc.
+            size_t len = formatted.length();
+            char* result = (char*)palloc(len + 1);
+            if(result == nullptr) {
+                throw std::bad_alloc();
+            }
+            memcpy(result, formatted.data(), len);
+            result[len] = '\0';
+
+            PG_RETURN_CSTRING(result);
+        } catch (const std::exception& e) {
+            reportException(e);
+        }
+
+        PG_RETURN_NULL();
+    }
+
     PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_in);
 
     PGDLLEXPORT Datum
@@ -104,7 +167,7 @@ extern "C" {
     packed_phone_number_out(PG_FUNCTION_ARGS) {
         try {
             const PackedPhoneNumber* short_number = (PackedPhoneNumber*)PG_GETARG_POINTER(0);
-            PhoneNumber number = *short_number;
+            i18n::phonenumbers::PhoneNumber number = *short_number;
 
             std::string formatted;
             phoneUtil->Format(number, PhoneNumberUtil::INTERNATIONAL, &formatted);

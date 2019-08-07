@@ -7,6 +7,7 @@
 #include "phonenumbers/phonenumberutil.h"
 
 #include "mask.h"
+#include "phone_number_constants.h"
 
 /**
  * Raised when a phone number is too long to fit in a PackedPhoneNumber
@@ -33,15 +34,11 @@ class PhoneNumberTooLongException : public std::runtime_error {
  */
 class PackedPhoneNumber {
     public:
-    /// The largest possible country code
-    static constexpr size_t max_country_code = 999;
     /// The maximum number of leading zeroes in a national phone number
     static constexpr size_t max_leading_zeros = 15;
     /// The largest possible national number
     static constexpr size_t max_national_number = 999999999999999;
 
-    /// The number of bits reserved for a country code
-    static constexpr size_t country_code_bits = 10;
     /// The number of bits reserved for the leading zero count
     static constexpr size_t leading_zeros_bits = 4;
     /// The number of bits reserved for the national number

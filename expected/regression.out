@@ -1,17 +1,48 @@
 CREATE EXTENSION IF NOT EXISTS pg_libphonenumber;
---Test phone number parsing
+-- TODO: test in/out functions.
+-- Test phone number parsing
+select parse_phone_number('555-555-5555', 'US');
+ parse_phone_number 
+--------------------
+ +1 555-555-5555
+(1 row)
+
+select parse_phone_number('005-555-5555', 'US');
+ parse_phone_number 
+--------------------
+ +1 005-555-5555
+(1 row)
+
+select parse_phone_number('555-555-5555555555', 'US');
+ parse_phone_number  
+---------------------
+ +1 5555555555555555
+(1 row)
+
+-- Produces an error from libphonenumber
+select parse_phone_number('555-555-55555555555', 'US');
+ERROR:  unable to parse '555-555-55555555555' as a phone number
+DETAIL:  National number is too long
+-- TODO: test country codes.
+-- Test packed phone number parsing
 select parse_packed_phone_number('555-555-5555', 'US');
  parse_packed_phone_number 
 ---------------------------
  +1 555-555-5555
 (1 row)
 
---These two should produce errors because the number is too long.
---Produces an error in pg-libphonenumber's code
+select parse_packed_phone_number('005-555-5555', 'US');
+ parse_packed_phone_number 
+---------------------------
+ +1 005-555-5555
+(1 row)
+
+-- These two should produce errors because the number is too long.
+-- Produces an error in pg-libphonenumber's code
 select parse_packed_phone_number('555-555-5555555555', 'US');
 ERROR:  phone number '+1 5555555555555555' is too long
 DETAIL:  National number is too long
---Produces an error from libphonenumber
+-- Produces an error from libphonenumber
 select parse_packed_phone_number('555-555-55555555555', 'US');
 ERROR:  unable to parse '555-555-55555555555' as a phone number
 DETAIL:  National number is too long

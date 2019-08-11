@@ -1,12 +1,16 @@
 #include <new>
+#include <stdexcept>
 
-#include "phonenumbers/phonenumber.pb.h"
+#include "phonenumbers/phonenumberutil.h"
 
 #include "phone_number.h"
 #include "mask.h"
 #include "phone_number_constants.h"
 
 namespace {
+    using PhoneNumberUtil = i18n::phonenumbers::PhoneNumberUtil;
+    static const PhoneNumberUtil* const phoneUtil = PhoneNumberUtil::GetInstance();
+
     constexpr bool is_odd(size_t n) {
         return (n & 1) == 1;
     }
@@ -15,7 +19,8 @@ namespace {
         if (digit >= '0' && digit <= '9') {
             return static_cast<Digit>(digit - '0');
         }
-        return Digit::N0; // TODO: throw exception.
+        // TODO: handle special characters.
+        throw std::logic_error("Invalid digit");
     }
 }
 
@@ -42,24 +47,23 @@ PhoneNumber* PhoneNumber::make(uint32_t size) {
 }
 
 PhoneNumber* PhoneNumber::make(const i18n::phonenumbers::PhoneNumber& number) {
-    const std::string number_text = std::to_string(number.national_number()); // TODO: optimize.
-    const size_t num_leading_zeroes = number.number_of_leading_zeros();
-    const size_t num_digits = num_leading_zeroes + number_text.size() + number.extension().size();
+    std::string number_text;
+    phoneUtil->GetNationalSignificantNumber(number, &number_text);
+    const size_t extension_size = number.has_extension() ? number.extension().size() : 0;
+    const size_t num_digits = /*num_leading_zeroes +*/ number_text.size() + extension_size;
     PhoneNumber* new_number = make(num_digits);
-
-    for (size_t i = 0; i < num_leading_zeroes; ++i) {
-        new_number->set(i, Digit::N0);
-    }
+    new_number->set_country_code(number.country_code());
 
     for (size_t i = 0; i < number_text.size(); ++i) {
-        new_number->set(num_leading_zeroes + i, to_digit(number_text[i]));
+        new_number->set(i, to_digit(number_text[i]));
     }
+
+    // TODO: extension
 
     return new_number;
 }
 
-PhoneNumber::operator i18n::phonenumbers::PhoneNumber() const
-{
+PhoneNumber::operator i18n::phonenumbers::PhoneNumber() const {
     i18n::phonenumbers::PhoneNumber number;
     number.set_country_code(country_code());
 
@@ -73,13 +77,14 @@ PhoneNumber::operator i18n::phonenumbers::PhoneNumber() const
         } else {
             if (digit <= Digit::N9) {
                 national_number *= 10;
-                national_number += static_cast<uint8_t>(digit);
+                national_number += static_cast<uint64_t>(digit);
             }
             // TODO: handle extensions, special characters, etc.
         }
     }
 
     number.set_national_number(national_number);
+    number.set_italian_leading_zero(leading_zeroes > 0); // TODO: is this what we want to do?
     number.set_number_of_leading_zeros(leading_zeroes);
 
     return number;
@@ -87,6 +92,10 @@ PhoneNumber::operator i18n::phonenumbers::PhoneNumber() const
 
 uint16_t PhoneNumber::country_code() const {
     return get_masked(_bits, country_code_bits, 0);
+}
+
+void PhoneNumber::set_country_code(uint16_t country_code) {
+    _bits = set_masked(_bits, country_code, country_code_bits, 0);
 }
 
 size_t PhoneNumber::size() const {
@@ -107,7 +116,7 @@ Digit PhoneNumber::get(size_t index) const {
 void PhoneNumber::set(size_t index, Digit digit) {
     const bool odd_index = is_odd(index);
     const size_t byte = index / 2;
-    set_masked(_digits[byte], static_cast<uint8_t>(digit), 4, odd_index ? 4 : 0);
+    _digits[byte] = set_masked(_digits[byte], static_cast<uint8_t>(digit), 4, odd_index ? 4 : 0);
 }
 
 bool PhoneNumber::has_odd_size() const {
@@ -115,5 +124,5 @@ bool PhoneNumber::has_odd_size() const {
 }
 
 void PhoneNumber::set_odd_size(bool even) {
-    set_masked(_bits, static_cast<uint16_t>(even), 1, country_code_bits);
+    _bits = set_masked(_bits, static_cast<uint16_t>(even), 1, country_code_bits);
 }

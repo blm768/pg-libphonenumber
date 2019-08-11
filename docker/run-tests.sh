@@ -8,6 +8,8 @@ pg_ctl=/usr/lib/postgresql/${PG_MAJOR}/bin/pg_ctl
 make installcheck
 "$pg_ctl" "--pgdata=${PGDATA}" stop
 if [ -f regression.diffs ]; then
+    echo "*** Diff ***"
     cat regression.diffs
-    cat regression.out
+    echo "*** Regression results ***"
+    cat results/regression.out
 fi

@@ -31,9 +31,15 @@ CREATE TYPE phone_number (
     OUTPUT = phone_number_out,
 --    RECEIVE = phone_number_recv,
 --    SEND = phone_number_send,
-    ALIGNMENT = double,
+    ALIGNMENT = int4,
     STORAGE = plain
 );
+
+-- Constructors
+
+CREATE FUNCTION parse_phone_number(text, text) RETURNS phone_number
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'parse_phone_number';
 
 --
 -- Packed number type

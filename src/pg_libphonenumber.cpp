@@ -123,11 +123,9 @@ extern "C" {
             std::string formatted;
             phoneUtil->Format(converted, PhoneNumberUtil::INTERNATIONAL, &formatted);
 
-            //Copy the formatted number to a C-style string.
-            //We must use the PostgreSQL allocator, not new/malloc.
             size_t len = formatted.length();
             char* result = (char*)palloc(len + 1);
-            if(result == nullptr) {
+            if (result == nullptr) {
                 throw std::bad_alloc();
             }
             memcpy(result, formatted.data(), len);
@@ -148,7 +146,7 @@ extern "C" {
         try {
             const char *number_str = PG_GETARG_CSTRING(0);
 
-            //TODO: use international format instead.
+            // TODO: use international format instead.
             PackedPhoneNumber* number = do_parse_packed_phone_number(number_str, "US");
             if(number) {
                 PG_RETURN_POINTER(number);
@@ -349,6 +347,31 @@ extern "C" {
      * Other functions
      */
 
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(parse_phone_number);
+
+    PGDLLEXPORT Datum
+    parse_phone_number(PG_FUNCTION_ARGS) {
+        try {
+            const text* number_text = PG_GETARG_TEXT_P(0);
+            const text* country_text = PG_GETARG_TEXT_P(1);
+
+            char* number_str = text_to_c_string(number_text);
+            char* country = text_to_c_string(country_text);
+
+            PhoneNumber* number = do_parse_phone_number(number_str, country);
+            pfree(number_str);
+            pfree(country);
+            if(number) {
+                PG_RETURN_POINTER(number);
+            } else {
+                PG_RETURN_NULL();
+            }
+        } catch(std::exception& e) {
+            reportException(e);
+            PG_RETURN_NULL();
+        }
+    }
+
     PGDLLEXPORT PG_FUNCTION_INFO_V1(parse_packed_phone_number);
 
     PGDLLEXPORT Datum
@@ -361,7 +384,6 @@ extern "C" {
             char* country = text_to_c_string(country_text);
 
             PackedPhoneNumber* number = do_parse_packed_phone_number(number_str, country);
-            //TODO: prevent leaks.
             pfree(number_str);
             pfree(country);
             if(number) {

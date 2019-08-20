@@ -41,6 +41,43 @@ CREATE FUNCTION parse_phone_number(text, text) RETURNS phone_number
     LANGUAGE c IMMUTABLE STRICT
     AS 'pg_libphonenumber', 'parse_phone_number';
 
+-- Casts
+
+CREATE CAST (phone_number AS text)
+    WITH INOUT;
+
+-- Operators and indexing
+
+CREATE FUNCTION phone_number_equal(phone_number, phone_number) RETURNS bool
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_equal';
+
+CREATE OPERATOR = (
+    leftarg = phone_number,
+    rightarg = phone_number,
+    procedure = phone_number_equal,
+    commutator = =,
+    negator = <>,
+    restrict = eqsel,
+    join = eqjoinsel,
+    hashes = true,
+    merges = true
+);
+
+CREATE FUNCTION phone_number_not_equal(phone_number, phone_number) RETURNS bool
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_not_equal';
+
+CREATE OPERATOR <> (
+    leftarg = phone_number,
+    rightarg = phone_number,
+    procedure = phone_number_not_equal,
+    commutator = <>,
+    negator = =,
+    restrict = neqsel,
+    join = neqjoinsel
+);
+
 --
 -- Packed number type
 --
@@ -72,6 +109,12 @@ CREATE TYPE packed_phone_number (
     ALIGNMENT = double,
     STORAGE = plain
 );
+
+-- Constructors
+
+CREATE FUNCTION parse_packed_phone_number(text, text) RETURNS packed_phone_number
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'parse_packed_phone_number';
 
 -- Casts
 
@@ -178,12 +221,6 @@ CREATE OPERATOR CLASS packed_phone_number_ops
         OPERATOR 4 >=,
         OPERATOR 5 >,
         FUNCTION 1 packed_phone_number_cmp(packed_phone_number, packed_phone_number);
-
--- Constructors
-
-CREATE FUNCTION parse_packed_phone_number(text, text) RETURNS packed_phone_number
-    LANGUAGE c IMMUTABLE STRICT
-    AS 'pg_libphonenumber', 'parse_packed_phone_number';
 
 --
 -- General functions

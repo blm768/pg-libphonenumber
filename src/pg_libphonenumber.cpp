@@ -139,6 +139,46 @@ extern "C" {
         PG_RETURN_NULL();
     }
 
+    /*
+     * Operator functions
+     */
+
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_equal);
+
+    PGDLLEXPORT Datum
+    phone_number_equal(PG_FUNCTION_ARGS) {
+        try {
+            auto number1 = (const PhoneNumber*)PG_GETARG_POINTER(0);
+            auto number2 = (const PhoneNumber*)PG_GETARG_POINTER(1);
+
+            PG_RETURN_BOOL(*number1 == *number2);
+        } catch (std::exception& e) {
+            reportException(e);
+        }
+
+        PG_RETURN_NULL();
+    }
+
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_not_equal);
+
+    PGDLLEXPORT Datum
+    phone_number_not_equal(PG_FUNCTION_ARGS) {
+        try {
+            auto number1 = (const PhoneNumber*)PG_GETARG_POINTER(0);
+            auto number2 = (const PhoneNumber*)PG_GETARG_POINTER(1);
+
+            PG_RETURN_BOOL(*number1 != *number2);
+        } catch (std::exception& e) {
+            reportException(e);
+        }
+
+        PG_RETURN_NULL();
+    }
+
+    /*
+     * I/O functions
+     */
+
     PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_in);
 
     PGDLLEXPORT Datum

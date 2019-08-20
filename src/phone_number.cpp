@@ -50,7 +50,7 @@ PhoneNumber* PhoneNumber::make(const i18n::phonenumbers::PhoneNumber& number) {
     std::string number_text;
     phoneUtil->GetNationalSignificantNumber(number, &number_text);
     const size_t extension_size = number.has_extension() ? number.extension().size() : 0;
-    const size_t num_digits = /*num_leading_zeroes +*/ number_text.size() + extension_size;
+    const size_t num_digits = number_text.size() + extension_size;
     PhoneNumber* new_number = make(num_digits);
     new_number->set_country_code(number.country_code());
 
@@ -125,4 +125,17 @@ bool PhoneNumber::has_odd_size() const {
 
 void PhoneNumber::set_odd_size(bool even) {
     _bits = set_masked(_bits, static_cast<uint16_t>(even), 1, country_code_bits);
+}
+
+bool operator==(const PhoneNumber &a, const PhoneNumber &b) noexcept {
+    if (a.size() != b.size())
+        return false;
+    if (a.country_code() != b.country_code())
+        return false;
+    // TODO: optimize.
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (a.get(i) != b.get(i))
+            return false;
+    }
+    return true;
 }

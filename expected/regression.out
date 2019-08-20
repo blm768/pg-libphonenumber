@@ -23,6 +23,25 @@ select parse_phone_number('555-555-5555555555', 'US');
 select parse_phone_number('555-555-55555555555', 'US');
 ERROR:  unable to parse '555-555-55555555555' as a phone number
 DETAIL:  National number is too long
+-- Test operators
+select parse_phone_number('555-555-5555', 'US') = parse_phone_number('555-555-5555', 'US');
+ ?column? 
+----------
+ t
+(1 row)
+
+select parse_phone_number('555-555-5555', 'US') <> parse_phone_number('555-055-5555', 'US');
+ ?column? 
+----------
+ t
+(1 row)
+
+select parse_phone_number('555-555-5555', 'US') = parse_phone_number('555-555-555', 'US');
+ ?column? 
+----------
+ f
+(1 row)
+
 -- TODO: test country codes.
 -- Test packed phone number parsing
 select parse_packed_phone_number('555-555-5555', 'US');

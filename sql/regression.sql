@@ -9,6 +9,11 @@ select parse_phone_number('555-555-5555555555', 'US');
 -- Produces an error from libphonenumber
 select parse_phone_number('555-555-55555555555', 'US');
 
+-- Test operators
+select parse_phone_number('555-555-5555', 'US') = parse_phone_number('555-555-5555', 'US');
+select parse_phone_number('555-555-5555', 'US') <> parse_phone_number('555-055-5555', 'US');
+select parse_phone_number('555-555-5555', 'US') = parse_phone_number('555-555-555', 'US');
+
 -- TODO: test country codes.
 
 -- Test packed phone number parsing

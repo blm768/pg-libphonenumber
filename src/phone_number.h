@@ -52,3 +52,6 @@ private:
     bool has_odd_size() const;
     void set_odd_size(bool odd);
 };
+
+bool operator==(const PhoneNumber &a, const PhoneNumber &b) noexcept;
+inline bool operator!=(const PhoneNumber &a, const PhoneNumber &b) noexcept { return !operator==(a, b); }

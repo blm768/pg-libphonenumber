@@ -147,32 +147,71 @@ extern "C" {
 
     PGDLLEXPORT Datum
     phone_number_equal(PG_FUNCTION_ARGS) {
-        try {
-            auto number1 = (const PhoneNumber*)PG_GETARG_POINTER(0);
-            auto number2 = (const PhoneNumber*)PG_GETARG_POINTER(1);
-
-            PG_RETURN_BOOL(*number1 == *number2);
-        } catch (std::exception& e) {
-            reportException(e);
-        }
-
-        PG_RETURN_NULL();
+        auto number1 = (const PhoneNumber*)PG_GETARG_POINTER(0);
+        auto number2 = (const PhoneNumber*)PG_GETARG_POINTER(1);
+        static_assert(noexcept(*number1 == *number2), "must be noexcept");
+        PG_RETURN_BOOL(*number1 == *number2);
     }
 
     PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_not_equal);
 
     PGDLLEXPORT Datum
     phone_number_not_equal(PG_FUNCTION_ARGS) {
-        try {
-            auto number1 = (const PhoneNumber*)PG_GETARG_POINTER(0);
-            auto number2 = (const PhoneNumber*)PG_GETARG_POINTER(1);
+        auto number1 = (const PhoneNumber*)PG_GETARG_POINTER(0);
+        auto number2 = (const PhoneNumber*)PG_GETARG_POINTER(1);
+        static_assert(noexcept(*number1 != *number2), "must be noexcept");
+        PG_RETURN_BOOL(*number1 != *number2);
+    }
 
-            PG_RETURN_BOOL(*number1 != *number2);
-        } catch (std::exception& e) {
-            reportException(e);
-        }
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_less);
 
-        PG_RETURN_NULL();
+    PGDLLEXPORT Datum
+    phone_number_less(PG_FUNCTION_ARGS) {
+        const PhoneNumber* number1 = (PhoneNumber*)PG_GETARG_POINTER(0);
+        const PhoneNumber* number2 = (PhoneNumber*)PG_GETARG_POINTER(1);
+        static_assert(noexcept(*number1 < *number2), "must be noexcept");
+        PG_RETURN_BOOL(*number1 < *number2);
+    }
+
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_less_or_equal);
+
+    PGDLLEXPORT Datum
+    phone_number_less_or_equal(PG_FUNCTION_ARGS) {
+        const PhoneNumber* number1 = (PhoneNumber*)PG_GETARG_POINTER(0);
+        const PhoneNumber* number2 = (PhoneNumber*)PG_GETARG_POINTER(1);
+        static_assert(noexcept(*number1 <= *number2), "must be noexcept");
+        PG_RETURN_BOOL(*number1 <= *number2);
+    }
+
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_greater);
+
+    PGDLLEXPORT Datum
+    phone_number_greater(PG_FUNCTION_ARGS) {
+        const PhoneNumber* number1 = (PhoneNumber*)PG_GETARG_POINTER(0);
+        const PhoneNumber* number2 = (PhoneNumber*)PG_GETARG_POINTER(1);
+        static_assert(noexcept(*number1 > *number2), "must be noexcept");
+        PG_RETURN_BOOL(*number1 > *number2);
+    }
+
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_greater_or_equal);
+
+    PGDLLEXPORT Datum
+    phone_number_greater_or_equal(PG_FUNCTION_ARGS) {
+        const PhoneNumber* number1 = (PhoneNumber*)PG_GETARG_POINTER(0);
+        const PhoneNumber* number2 = (PhoneNumber*)PG_GETARG_POINTER(1);
+        static_assert(noexcept(*number1 >= *number2), "must be noexcept");
+        PG_RETURN_BOOL(*number1 >= *number2);
+    }
+
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_cmp);
+
+    PGDLLEXPORT Datum
+    phone_number_cmp(PG_FUNCTION_ARGS) {
+        const PhoneNumber* number1 = (PhoneNumber*)PG_GETARG_POINTER(0);
+        const PhoneNumber* number2 = (PhoneNumber*)PG_GETARG_POINTER(1);
+        static_assert(noexcept(PhoneNumber::compare(*number1, *number2)), "must be noexcept");
+        int64_t compared = PhoneNumber::compare(*number1, *number2);
+        PG_RETURN_INT32(clamp<int64_t>(compared, -1, 1));
     }
 
     /*

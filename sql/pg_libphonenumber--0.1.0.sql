@@ -78,6 +78,75 @@ CREATE OPERATOR <> (
     join = neqjoinsel
 );
 
+CREATE FUNCTION phone_number_less(phone_number, phone_number) RETURNS bool
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_less';
+
+CREATE OPERATOR < (
+    leftarg = phone_number,
+    rightarg = phone_number,
+    procedure = phone_number_less,
+    commutator = >,
+    negator = >=,
+    restrict = scalarltsel,
+    join = scalarltjoinsel
+);
+
+CREATE FUNCTION phone_number_less_or_equal(phone_number, phone_number) RETURNS bool
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_less_or_equal';
+
+CREATE OPERATOR <= (
+    leftarg = phone_number,
+    rightarg = phone_number,
+    procedure = phone_number_less_or_equal,
+    commutator = >=,
+    negator = >,
+    restrict = scalarltsel,
+    join = scalarltjoinsel
+);
+
+CREATE FUNCTION phone_number_greater(phone_number, phone_number) RETURNS bool
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_greater';
+
+CREATE OPERATOR > (
+    leftarg = phone_number,
+    rightarg = phone_number,
+    procedure = phone_number_greater,
+    commutator = >,
+    negator = <=,
+    restrict = scalargtsel,
+    join = scalargtjoinsel
+);
+
+CREATE FUNCTION phone_number_greater_or_equal(phone_number, phone_number) RETURNS bool
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_greater_or_equal';
+
+CREATE OPERATOR >= (
+    leftarg = phone_number,
+    rightarg = phone_number,
+    procedure = phone_number_greater_or_equal,
+    commutator = >=,
+    negator = <,
+    restrict = scalargtsel,
+    join = scalargtjoinsel
+);
+
+CREATE FUNCTION phone_number_cmp(phone_number, phone_number) RETURNS integer
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_cmp';
+
+CREATE OPERATOR CLASS phone_number_ops
+    DEFAULT FOR TYPE phone_number USING btree AS
+        OPERATOR 1 <,
+        OPERATOR 2 <=,
+        OPERATOR 3 =,
+        OPERATOR 4 >=,
+        OPERATOR 5 >,
+        FUNCTION 1 phone_number_cmp(phone_number, phone_number);
+
 --
 -- Packed number type
 --

@@ -63,6 +63,32 @@ PhoneNumber* PhoneNumber::make(const i18n::phonenumbers::PhoneNumber& number) {
     return new_number;
 }
 
+int PhoneNumber::compare(const PhoneNumber& a, const PhoneNumber& b) noexcept
+{
+    const auto code_a = a.country_code();
+    const auto code_b = b.country_code();
+    if (code_a < code_b)
+        return -1;
+    else if (code_b < code_a)
+        return 1;
+    const size_t size_a = a.size();
+    const size_t size_b = b.size();
+    for (size_t i = 0; i < std::min(size_a, size_b); ++i) {
+        Digit digit_a = a.get(i);
+        Digit digit_b = b.get(i);
+        if (digit_a < digit_b)
+            return -1;
+        else if (digit_b < digit_a)
+            return 1;
+    }
+    if (size_a < size_b)
+        return -1;
+    else if (size_b < size_a)
+        return 1;
+    else
+        return 0;
+}
+
 PhoneNumber::operator i18n::phonenumbers::PhoneNumber() const {
     i18n::phonenumbers::PhoneNumber number;
     number.set_country_code(country_code());

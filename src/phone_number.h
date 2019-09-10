@@ -33,6 +33,8 @@ public:
     static PhoneNumber* make(uint32_t size);
     static PhoneNumber* make(const i18n::phonenumbers::PhoneNumber& number);
 
+    static int compare(const PhoneNumber& a, const PhoneNumber& b) noexcept;
+
     operator i18n::phonenumbers::PhoneNumber() const;
 
     uint16_t country_code() const;
@@ -55,3 +57,7 @@ private:
 
 bool operator==(const PhoneNumber &a, const PhoneNumber &b) noexcept;
 inline bool operator!=(const PhoneNumber &a, const PhoneNumber &b) noexcept { return !operator==(a, b); }
+inline bool operator<(const PhoneNumber &a, const PhoneNumber &b) noexcept { return PhoneNumber::compare(a, b) < 0; }
+inline bool operator<=(const PhoneNumber &a, const PhoneNumber &b) noexcept { return PhoneNumber::compare(a, b) <= 0; }
+inline bool operator>(const PhoneNumber &a, const PhoneNumber &b) noexcept { return PhoneNumber::compare(a, b) > 0; }
+inline bool operator>=(const PhoneNumber &a, const PhoneNumber &b) noexcept { return PhoneNumber::compare(a, b) >= 0; }

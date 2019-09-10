@@ -14,6 +14,11 @@ select parse_phone_number('555-555-5555', 'US') = parse_phone_number('555-555-55
 select parse_phone_number('555-555-5555', 'US') <> parse_phone_number('555-055-5555', 'US');
 select parse_phone_number('555-555-5555', 'US') = parse_phone_number('555-555-555', 'US');
 
+select parse_phone_number('555-545-5555', 'US') < parse_phone_number('555-555-5555', 'US');
+select parse_phone_number('555-565-5555', 'US') > parse_phone_number('555-555-5555', 'US');
+select parse_phone_number('555-555-555', 'US') < parse_phone_number('555-555-5555', 'US');
+select parse_phone_number('555-555-555', 'US') > parse_phone_number('555-555-5555', 'US');
+
 -- TODO: test country codes.
 
 -- Test packed phone number parsing

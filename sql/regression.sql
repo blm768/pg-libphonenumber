@@ -32,4 +32,5 @@ select parse_packed_phone_number('555-555-55555555555', 'US');
 
 -- Do we get correct country codes?
 -- TODO: expand.
+select phone_number_country_code(parse_phone_number('+1-555-555-5555', 'USA'));
 select phone_number_country_code(parse_packed_phone_number('+1-555-555-5555', 'USA'));

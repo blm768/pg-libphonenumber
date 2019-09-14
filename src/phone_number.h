@@ -37,7 +37,7 @@ public:
 
     operator i18n::phonenumbers::PhoneNumber() const;
 
-    uint16_t country_code() const;
+    uint16_t country_code() const noexcept;
     void set_country_code(uint16_t country_code);
     size_t size() const;
     Digit get(size_t index) const;

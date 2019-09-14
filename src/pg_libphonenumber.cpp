@@ -476,6 +476,19 @@ extern "C" {
         }
     }
 
+    /*
+     * General functions
+     */
+
+    PGDLLEXPORT PG_FUNCTION_INFO_V1(phone_number_country_code);
+
+    PGDLLEXPORT Datum
+    phone_number_country_code(PG_FUNCTION_ARGS) {
+        const PhoneNumber* number = (PhoneNumber*)PG_GETARG_POINTER(0);
+        static_assert(noexcept(number->country_code()), "must be noexcept");
+        PG_RETURN_INT32(number->country_code());
+    }
+
     PGDLLEXPORT PG_FUNCTION_INFO_V1(packed_phone_number_country_code);
 
     PGDLLEXPORT Datum

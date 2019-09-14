@@ -295,6 +295,10 @@ CREATE OPERATOR CLASS packed_phone_number_ops
 -- General functions
 --
 
+CREATE FUNCTION phone_number_country_code(phone_number) RETURNS integer
+    LANGUAGE c IMMUTABLE STRICT
+    AS 'pg_libphonenumber', 'phone_number_country_code';
+
 CREATE FUNCTION phone_number_country_code(packed_phone_number) RETURNS integer
     LANGUAGE c IMMUTABLE STRICT
     AS 'pg_libphonenumber', 'packed_phone_number_country_code';

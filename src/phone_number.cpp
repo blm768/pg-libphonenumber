@@ -116,7 +116,7 @@ PhoneNumber::operator i18n::phonenumbers::PhoneNumber() const {
     return number;
 }
 
-uint16_t PhoneNumber::country_code() const {
+uint16_t PhoneNumber::country_code() const noexcept {
     return get_masked(_bits, country_code_bits, 0);
 }
 

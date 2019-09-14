@@ -4,11 +4,11 @@ using namespace google::protobuf;
 using namespace i18n::phonenumbers;
 
 namespace {
-    const PhoneNumberUtil* phoneUtil = PhoneNumberUtil::GetInstance();
+const PhoneNumberUtil* phoneUtil = PhoneNumberUtil::GetInstance();
 }
 
 PhoneNumberTooLongException::PhoneNumberTooLongException(const PhoneNumber& number, const char* msg) :
-    std::runtime_error(msg), _number(number) {};
+    std::runtime_error(msg), _number(number){};
 
 std::string PhoneNumberTooLongException::number_string() const {
     std::string formatted;
@@ -19,20 +19,20 @@ std::string PhoneNumberTooLongException::number_string() const {
 PackedPhoneNumber::PackedPhoneNumber(const i18n::phonenumbers::PhoneNumber& number) {
     // TODO: check has_national_number(), etc?
     uint32 country_code = number.country_code();
-    if(country_code > max_country_code) {
+    if (country_code > max_country_code) {
         throw PhoneNumberTooLongException(number, "Country code is too long");
     }
     this->country_code(country_code);
 
     uint64_t national_number = number.national_number();
-    if(national_number > max_national_number) {
+    if (national_number > max_national_number) {
         throw PhoneNumberTooLongException(number, "National number is too long");
     }
     this->national_number(national_number);
 
-    if(number.has_number_of_leading_zeros()) {
+    if (number.has_number_of_leading_zeros()) {
         uint32 leading_zeros = number.number_of_leading_zeros();
-        if(leading_zeros > max_leading_zeros) {
+        if (leading_zeros > max_leading_zeros) {
             throw PhoneNumberTooLongException(number, "Too many leading zeros");
         }
         this->leading_zeros(leading_zeros);

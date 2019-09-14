@@ -7,6 +7,7 @@ DATA := sql/$(EXTENSION)--*.sql
 REGRESS := regression
 
 # Build options
+h_files := $(wildcard src/*.h)
 cpp_files := $(wildcard src/*.cpp)
 
 # The native module to build
@@ -30,3 +31,7 @@ SHLIB_LINK := -lphonenumber -lstdc++
 PG_CONFIG := pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
+
+.PHONY: format
+format:
+	clang-format -i $(cpp_files) $(h_files)

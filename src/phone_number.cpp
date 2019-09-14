@@ -3,26 +3,24 @@
 
 #include "phonenumbers/phonenumberutil.h"
 
-#include "phone_number.h"
 #include "mask.h"
+#include "phone_number.h"
 #include "phone_number_constants.h"
 
 namespace {
-    using PhoneNumberUtil = i18n::phonenumbers::PhoneNumberUtil;
-    static const PhoneNumberUtil* const phoneUtil = PhoneNumberUtil::GetInstance();
+using PhoneNumberUtil = i18n::phonenumbers::PhoneNumberUtil;
+static const PhoneNumberUtil* const phoneUtil = PhoneNumberUtil::GetInstance();
 
-    constexpr bool is_odd(size_t n) {
-        return (n & 1) == 1;
-    }
+constexpr bool is_odd(size_t n) { return (n & 1) == 1; }
 
-    Digit to_digit(char digit) {
-        if (digit >= '0' && digit <= '9') {
-            return static_cast<Digit>(digit - '0');
-        }
-        // TODO: handle special characters.
-        throw std::logic_error("Invalid digit");
+Digit to_digit(char digit) {
+    if (digit >= '0' && digit <= '9') {
+        return static_cast<Digit>(digit - '0');
     }
+    // TODO: handle special characters.
+    throw std::logic_error("Invalid digit");
 }
+} // namespace
 
 PhoneNumber* PhoneNumber::make(uint32_t size) {
     const bool odd_size = is_odd(size);
@@ -33,7 +31,7 @@ PhoneNumber* PhoneNumber::make(uint32_t size) {
     const size_t total_size = extra_size + bytes;
 
     auto buf = palloc(total_size);
-    auto str = new(buf) PhoneNumber();
+    auto str = new (buf) PhoneNumber();
     if (str == nullptr) {
         throw std::bad_alloc();
     }
@@ -63,8 +61,7 @@ PhoneNumber* PhoneNumber::make(const i18n::phonenumbers::PhoneNumber& number) {
     return new_number;
 }
 
-int PhoneNumber::compare(const PhoneNumber& a, const PhoneNumber& b) noexcept
-{
+int PhoneNumber::compare(const PhoneNumber& a, const PhoneNumber& b) noexcept {
     const auto code_a = a.country_code();
     const auto code_b = b.country_code();
     if (code_a < code_b)
@@ -116,9 +113,7 @@ PhoneNumber::operator i18n::phonenumbers::PhoneNumber() const {
     return number;
 }
 
-uint16_t PhoneNumber::country_code() const noexcept {
-    return get_masked(_bits, country_code_bits, 0);
-}
+uint16_t PhoneNumber::country_code() const noexcept { return get_masked(_bits, country_code_bits, 0); }
 
 void PhoneNumber::set_country_code(uint16_t country_code) {
     _bits = set_masked(_bits, country_code, country_code_bits, 0);
@@ -145,15 +140,13 @@ void PhoneNumber::set(size_t index, Digit digit) {
     _digits[byte] = set_masked(_digits[byte], static_cast<uint8_t>(digit), 4, odd_index ? 4 : 0);
 }
 
-bool PhoneNumber::has_odd_size() const {
-    return get_masked(_bits, 1, country_code_bits) == 1;
-}
+bool PhoneNumber::has_odd_size() const { return get_masked(_bits, 1, country_code_bits) == 1; }
 
 void PhoneNumber::set_odd_size(bool even) {
     _bits = set_masked(_bits, static_cast<uint16_t>(even), 1, country_code_bits);
 }
 
-bool operator==(const PhoneNumber &a, const PhoneNumber &b) noexcept {
+bool operator==(const PhoneNumber& a, const PhoneNumber& b) noexcept {
     if (a.size() != b.size())
         return false;
     if (a.country_code() != b.country_code())

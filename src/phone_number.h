@@ -1,16 +1,16 @@
 #pragma once
 
 extern "C" {
-    #include "postgres.h"
+#include "postgres.h"
 }
 
 #include <cstdint>
 
 namespace i18n {
-    namespace phonenumbers {
-        class PhoneNumber;
-    }
+namespace phonenumbers {
+    class PhoneNumber;
 }
+} // namespace i18n
 
 enum class Digit : uint8_t {
     N0,
@@ -25,11 +25,12 @@ enum class Digit : uint8_t {
     N9,
     Star,
     Pound,
-    // TODO: extension separator? (may be implementation detail of PhoneNumber or something...)
+    // TODO: extension separator? (may be implementation detail of PhoneNumber
+    // or something...)
 };
 
 class PhoneNumber {
-public:
+  public:
     static PhoneNumber* make(uint32_t size);
     static PhoneNumber* make(const i18n::phonenumbers::PhoneNumber& number);
 
@@ -43,10 +44,11 @@ public:
     Digit get(size_t index) const;
     void set(size_t index, Digit digit);
 
-private:
+  private:
     uint32_t _size = 0;
     uint16_t _bits = 0;
-    static constexpr size_t extra_size = VARHDRSZ + sizeof(_bits); // NOTE: must stay in sync with size of data members above.
+    static constexpr size_t extra_size =
+        VARHDRSZ + sizeof(_bits); // NOTE: must stay in sync with size of data members above.
     uint8_t _digits[FLEXIBLE_ARRAY_MEMBER];
 
     PhoneNumber() = default;
@@ -55,9 +57,9 @@ private:
     void set_odd_size(bool odd);
 };
 
-bool operator==(const PhoneNumber &a, const PhoneNumber &b) noexcept;
-inline bool operator!=(const PhoneNumber &a, const PhoneNumber &b) noexcept { return !operator==(a, b); }
-inline bool operator<(const PhoneNumber &a, const PhoneNumber &b) noexcept { return PhoneNumber::compare(a, b) < 0; }
-inline bool operator<=(const PhoneNumber &a, const PhoneNumber &b) noexcept { return PhoneNumber::compare(a, b) <= 0; }
-inline bool operator>(const PhoneNumber &a, const PhoneNumber &b) noexcept { return PhoneNumber::compare(a, b) > 0; }
-inline bool operator>=(const PhoneNumber &a, const PhoneNumber &b) noexcept { return PhoneNumber::compare(a, b) >= 0; }
+bool operator==(const PhoneNumber& a, const PhoneNumber& b) noexcept;
+inline bool operator!=(const PhoneNumber& a, const PhoneNumber& b) noexcept { return !operator==(a, b); }
+inline bool operator<(const PhoneNumber& a, const PhoneNumber& b) noexcept { return PhoneNumber::compare(a, b) < 0; }
+inline bool operator<=(const PhoneNumber& a, const PhoneNumber& b) noexcept { return PhoneNumber::compare(a, b) <= 0; }
+inline bool operator>(const PhoneNumber& a, const PhoneNumber& b) noexcept { return PhoneNumber::compare(a, b) > 0; }
+inline bool operator>=(const PhoneNumber& a, const PhoneNumber& b) noexcept { return PhoneNumber::compare(a, b) >= 0; }

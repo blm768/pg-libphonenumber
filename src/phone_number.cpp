@@ -115,11 +115,11 @@ PhoneNumber::operator i18n::phonenumbers::PhoneNumber() const {
 
 uint16_t PhoneNumber::country_code() const noexcept { return get_masked(_bits, country_code_bits, 0); }
 
-void PhoneNumber::set_country_code(uint16_t country_code) {
+void PhoneNumber::set_country_code(uint16_t country_code) noexcept {
     _bits = set_masked(_bits, country_code, country_code_bits, 0);
 }
 
-size_t PhoneNumber::size() const {
+size_t PhoneNumber::size() const noexcept {
     const size_t bytes = VARSIZE(this) - extra_size;
     size_t count = bytes * 2;
     if (has_odd_size()) {
@@ -128,21 +128,21 @@ size_t PhoneNumber::size() const {
     return count;
 }
 
-Digit PhoneNumber::get(size_t index) const {
+Digit PhoneNumber::get(size_t index) const noexcept {
     const bool odd_index = is_odd(index);
     const size_t byte = index / 2;
     return static_cast<Digit>(get_masked(_digits[byte], 4, odd_index ? 4 : 0));
 }
 
-void PhoneNumber::set(size_t index, Digit digit) {
+void PhoneNumber::set(size_t index, Digit digit) noexcept {
     const bool odd_index = is_odd(index);
     const size_t byte = index / 2;
     _digits[byte] = set_masked(_digits[byte], static_cast<uint8_t>(digit), 4, odd_index ? 4 : 0);
 }
 
-bool PhoneNumber::has_odd_size() const { return get_masked(_bits, 1, country_code_bits) == 1; }
+bool PhoneNumber::has_odd_size() const noexcept { return get_masked(_bits, 1, country_code_bits) == 1; }
 
-void PhoneNumber::set_odd_size(bool even) {
+void PhoneNumber::set_odd_size(bool even) noexcept {
     _bits = set_masked(_bits, static_cast<uint16_t>(even), 1, country_code_bits);
 }
 

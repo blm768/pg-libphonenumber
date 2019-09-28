@@ -5,14 +5,15 @@
 
 // Returns an instance of T with the given number of bits set to 1, starting at the given offset
 template<typename T>
-constexpr typename std::enable_if<std::is_integral<T>::value, T>::type mask(size_t num_bits, size_t offset = 0) {
+constexpr typename std::enable_if<std::is_integral<T>::value, T>::type mask(
+    size_t num_bits, size_t offset = 0) noexcept {
     return (((T)1 << num_bits) - 1) << offset;
 }
 
 // Returns the given number of bits from the data parameter, starting at the given offset
 template<typename T>
 constexpr typename std::enable_if<std::is_integral<T>::value, T>::type get_masked(
-    T data, size_t num_bits, size_t offset) {
+    T data, size_t num_bits, size_t offset) noexcept {
     return (data >> offset) & mask<T>(num_bits);
 }
 
@@ -23,6 +24,6 @@ constexpr typename std::enable_if<std::is_integral<T>::value, T>::type get_maske
 // TODO: support typeof(data) != typeof(value)?
 template<typename T>
 constexpr typename std::enable_if<std::is_integral<T>::value, T>::type set_masked(
-    T data, T value, size_t num_bits, size_t offset) {
+    T data, T value, size_t num_bits, size_t offset) noexcept {
     return (data & ~mask<T>(num_bits, offset)) | ((value & mask<T>(num_bits)) << offset);
 }

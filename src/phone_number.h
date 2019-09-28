@@ -39,10 +39,10 @@ class PhoneNumber {
     operator i18n::phonenumbers::PhoneNumber() const;
 
     uint16_t country_code() const noexcept;
-    void set_country_code(uint16_t country_code);
-    size_t size() const;
-    Digit get(size_t index) const;
-    void set(size_t index, Digit digit);
+    void set_country_code(uint16_t country_code) noexcept;
+    size_t size() const noexcept;
+    Digit get(size_t index) const noexcept;
+    void set(size_t index, Digit digit) noexcept;
 
   private:
     uint32_t _size = 0;
@@ -53,8 +53,8 @@ class PhoneNumber {
 
     PhoneNumber() = default;
 
-    bool has_odd_size() const;
-    void set_odd_size(bool odd);
+    bool has_odd_size() const noexcept;
+    void set_odd_size(bool odd) noexcept;
 };
 
 bool operator==(const PhoneNumber& a, const PhoneNumber& b) noexcept;

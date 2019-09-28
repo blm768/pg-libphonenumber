@@ -47,8 +47,6 @@ class PhoneNumber {
   private:
     uint32_t _size = 0;
     uint16_t _bits = 0;
-    static constexpr size_t extra_size =
-        VARHDRSZ + sizeof(_bits); // NOTE: must stay in sync with size of data members above.
     uint8_t _digits[FLEXIBLE_ARRAY_MEMBER];
 
     PhoneNumber() = default;

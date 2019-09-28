@@ -28,7 +28,7 @@ PhoneNumber* PhoneNumber::make(uint32_t size) {
     if (odd_size) {
         bytes += 1;
     }
-    const size_t total_size = extra_size + bytes;
+    const size_t total_size = offsetof(PhoneNumber, _digits) + bytes;
 
     auto buf = palloc(total_size);
     auto str = new (buf) PhoneNumber();
@@ -120,7 +120,7 @@ void PhoneNumber::set_country_code(uint16_t country_code) noexcept {
 }
 
 size_t PhoneNumber::size() const noexcept {
-    const size_t bytes = VARSIZE(this) - extra_size;
+    const size_t bytes = VARSIZE(this) - offsetof(PhoneNumber, _digits);
     size_t count = bytes * 2;
     if (has_odd_size()) {
         count -= 1;

@@ -25,13 +25,11 @@ enum class Digit : uint8_t {
     N9,
     Star,
     Pound,
-    // TODO: extension separator? (may be implementation detail of PhoneNumber
-    // or something...)
 };
 
 class PhoneNumber {
   public:
-    static PhoneNumber* make(uint32_t size);
+    static PhoneNumber* make(uint32_t digits, uint32_t extension_digits);
     static PhoneNumber* make(const i18n::phonenumbers::PhoneNumber& number);
 
     static int compare(const PhoneNumber& a, const PhoneNumber& b) noexcept;
@@ -40,19 +38,26 @@ class PhoneNumber {
 
     uint16_t country_code() const noexcept;
     void set_country_code(uint16_t country_code) noexcept;
-    size_t size() const noexcept;
-    Digit get(size_t index) const noexcept;
-    void set(size_t index, Digit digit) noexcept;
+    uint32_t size() const noexcept { return data_size() - (extension_size_bytes() + extension_size()); }
+    uint32_t extension_size() const noexcept;
+    Digit digit(uint32_t index) const noexcept;
+    void set_digit(uint32_t index, Digit digit) noexcept;
 
   private:
     uint32_t _size = 0;
     uint16_t _bits = 0;
-    uint8_t _digits[FLEXIBLE_ARRAY_MEMBER];
+    uint8_t _data[FLEXIBLE_ARRAY_MEMBER];
 
     PhoneNumber() = default;
 
+    uint32_t data_size() const noexcept;
+    uint32_t extension_size_bytes() const noexcept;
+    void set_extension_size_bytes(uint32_t bytes);
+    void set_extension_size(uint32_t size);
     bool has_odd_size() const noexcept;
     void set_odd_size(bool odd) noexcept;
+    uint8_t* packed_digits() noexcept { return _data + extension_size_bytes(); }
+    const uint8_t* packed_digits() const noexcept { return _data + extension_size_bytes(); }
 };
 
 bool operator==(const PhoneNumber& a, const PhoneNumber& b) noexcept;

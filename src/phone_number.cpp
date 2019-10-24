@@ -29,10 +29,12 @@ static const PhoneNumberUtil* const phoneUtil = PhoneNumberUtil::GetInstance();
 constexpr bool is_odd(size_t n) { return (n & 1) == 1; }
 
 Digit to_digit(char digit) {
-    if (digit >= '0' && digit <= '9') {
+    if (digit >= '0' && digit <= '9')
         return static_cast<Digit>(digit - '0');
-    }
-    // TODO: handle special characters.
+    if (digit == '*')
+        return Digit::Star;
+    if (digit == '#')
+        return Digit::Pound;
     throw std::logic_error("Invalid digit");
 }
 } // namespace
@@ -73,7 +75,12 @@ PhoneNumber* PhoneNumber::make(const i18n::phonenumbers::PhoneNumber& number) {
         new_number->set_digit(i, to_digit(number_text[i]));
     }
 
-    // TODO: extension
+    if (extension_size > 0) {
+        const std::string& extension = number.extension();
+        for (size_t i = 0; i < extension.size(); ++i) {
+            new_number->set_ext_digit(i, to_digit(extension[i]));
+        }
+    }
 
     return new_number;
 }
@@ -202,6 +209,10 @@ void PhoneNumber::set_digit(uint32_t index, Digit digit) noexcept {
     auto digits = packed_digits();
     digits[byte] = set_masked(digits[byte], static_cast<uint8_t>(digit), 4, odd_index ? 4 : 0);
 }
+
+Digit PhoneNumber::ext_digit(uint32_t index) const noexcept { return digit(index + size()); }
+
+void PhoneNumber::set_ext_digit(uint32_t index, Digit digit) noexcept { set_digit(index + size(), digit); }
 
 bool PhoneNumber::has_odd_size() const noexcept {
     static_assert(even_size_bit_offset < sizeof(_bits) * CHAR_BIT, "must have enough bits for odd size flag");

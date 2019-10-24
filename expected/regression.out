@@ -19,6 +19,18 @@ select parse_phone_number('555-555-5555555555', 'US');
  +1 5555555555555555
 (1 row)
 
+select parse_phone_number('555-555-5555-233#', 'US');
+ parse_phone_number 
+--------------------
+ +1 555-555-5555
+(1 row)
+
+select parse_phone_number('555-555-5555-23333#', 'US');
+ parse_phone_number 
+--------------------
+ +1 555-555-5555
+(1 row)
+
 -- Produces an error from libphonenumber
 select parse_phone_number('555-555-55555555555', 'US');
 ERROR:  unable to parse '555-555-55555555555' as a phone number

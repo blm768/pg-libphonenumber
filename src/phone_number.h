@@ -42,6 +42,8 @@ class PhoneNumber {
     uint32_t extension_size() const noexcept;
     Digit digit(uint32_t index) const noexcept;
     void set_digit(uint32_t index, Digit digit) noexcept;
+    Digit ext_digit(uint32_t index) const noexcept;
+    void set_ext_digit(uint32_t index, Digit digit) noexcept;
 
   private:
     uint32_t _size = 0;

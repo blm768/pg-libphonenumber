@@ -38,7 +38,7 @@ class PhoneNumber {
 
     uint16_t country_code() const noexcept;
     void set_country_code(uint16_t country_code) noexcept;
-    uint32_t size() const noexcept { return data_size() - (extension_size_bytes() + extension_size()); }
+    uint32_t size() const noexcept { return data_size() - extension_size(); }
     uint32_t extension_size() const noexcept;
     Digit digit(uint32_t index) const noexcept;
     void set_digit(uint32_t index, Digit digit) noexcept;
@@ -53,13 +53,9 @@ class PhoneNumber {
     PhoneNumber() = default;
 
     uint32_t data_size() const noexcept;
-    uint32_t extension_size_bytes() const noexcept;
-    void set_extension_size_bytes(uint32_t bytes);
     void set_extension_size(uint32_t size);
     bool has_odd_size() const noexcept;
     void set_odd_size(bool odd) noexcept;
-    uint8_t* packed_digits() noexcept { return _data + extension_size_bytes(); }
-    const uint8_t* packed_digits() const noexcept { return _data + extension_size_bytes(); }
 };
 
 bool operator==(const PhoneNumber& a, const PhoneNumber& b) noexcept;

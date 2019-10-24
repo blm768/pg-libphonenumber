@@ -4,6 +4,7 @@
 
 #include "phonenumbers/phonenumberutil.h"
 
+#include "error_handling.h"
 #include "mask.h"
 #include "phone_number.h"
 #include "phone_number_constants.h"
@@ -11,17 +12,11 @@
 namespace {
 constexpr size_t country_code_bits_offset = 0;
 constexpr size_t even_size_bit_offset = country_code_bits_offset + country_code_bits;
-constexpr size_t extension_bits_offset = even_size_bit_offset + 1;
-constexpr size_t extension_bits = 2;
+constexpr size_t extension_size_bits_offset = even_size_bit_offset + 1;
+constexpr size_t extension_size_bits = 5;
+constexpr size_t max_extension_size = (1 << extension_size_bits) - 1;
 
-constexpr size_t required_bytes(uint32_t value) {
-    static_assert(CHAR_BIT == 8, "not implemented for non-8-bit bytes");
-    if (value <= std::numeric_limits<uint8_t>::max())
-        return sizeof(uint8_t);
-    if (value <= std::numeric_limits<uint16_t>::max())
-        return sizeof(uint16_t);
-    return sizeof(uint32_t);
-}
+const char* extension_too_long_msg = "exceeded maximum extension length";
 
 using PhoneNumberUtil = i18n::phonenumbers::PhoneNumberUtil;
 static const PhoneNumberUtil* const phoneUtil = PhoneNumberUtil::GetInstance();
@@ -40,8 +35,7 @@ Digit to_digit(char digit) {
 } // namespace
 
 PhoneNumber* PhoneNumber::make(uint32_t digits, uint32_t extension_digits) {
-    const size_t extension_size_bytes = required_bytes(extension_digits);
-    const size_t total_digits = extension_size_bytes + digits + extension_digits;
+    const size_t total_digits = digits + extension_digits;
     const bool odd_size = is_odd(total_digits);
     size_t bytes = total_digits / 2;
     if (odd_size) {
@@ -58,7 +52,6 @@ PhoneNumber* PhoneNumber::make(uint32_t digits, uint32_t extension_digits) {
     (void)str->_size; // Avoid unused field warning
     SET_VARSIZE(str, total_size);
     str->set_odd_size(odd_size);
-    str->set_extension_size_bytes(extension_size_bytes);
     str->set_extension_size(extension_digits);
 
     return str;
@@ -68,6 +61,8 @@ PhoneNumber* PhoneNumber::make(const i18n::phonenumbers::PhoneNumber& number) {
     std::string number_text;
     phoneUtil->GetNationalSignificantNumber(number, &number_text);
     const size_t extension_size = number.has_extension() ? number.extension().size() : 0;
+    if (extension_size > max_extension_size)
+        throw PhoneNumberTooLongException(number, extension_too_long_msg);
     PhoneNumber* new_number = make(number_text.size(), extension_size);
     new_number->set_country_code(number.country_code());
 
@@ -156,58 +151,29 @@ uint32_t PhoneNumber::data_size() const noexcept {
     return count;
 }
 
-// Returns the number of bytes used to store the extension size.
-uint32_t PhoneNumber::extension_size_bytes() const noexcept {
-    static_assert(
-        extension_bits_offset + extension_bits <= sizeof(_bits) * CHAR_BIT, "must have enough bits for extension size");
-    auto ext_size_flag = get_masked(_bits, extension_bits, extension_bits_offset);
-    switch (ext_size_flag) {
-    case 0: return 0;
-    case 1: return 1;
-    case 2: return 2;
-    case 3: return 4;
-    }
-    static_assert(extension_bits == 2, "Only 2-bit values are handled.");
-    assert(false);
-}
-
-void PhoneNumber::set_extension_size_bytes(uint32_t bytes) {
-    decltype(_bits) flags = 0;
-    switch (bytes) {
-    case 0: flags = 0; break;
-    case 1: flags = 1; break;
-    case 2: flags = 2; break;
-    case 4: flags = 3; break;
-    default: throw std::logic_error("Invalid number of extension size bytes");
-    }
-    _bits = set_masked(_bits, flags, extension_bits, extension_bits_offset);
-}
-
 uint32_t PhoneNumber::extension_size() const noexcept {
-    uint32_t size = 0;
-    memcpy(&size, _data, extension_size_bytes());
-    return size;
+    static_assert(extension_size_bits_offset + extension_size_bits <= sizeof(_bits) * CHAR_BIT,
+        "must have enough bits for extension size");
+    return get_masked(_bits, extension_size_bits, extension_size_bits_offset);
 }
 
 void PhoneNumber::set_extension_size(uint32_t size) {
-    const size_t bytes = extension_size_bytes();
-    if (required_bytes(size) > bytes)
-        throw std::logic_error("Not enough space to store extension size");
-    memcpy(_data, &size, bytes);
+    if (size > max_extension_size)
+        throw std::logic_error(extension_too_long_msg);
+    _bits = set_masked(_bits, static_cast<decltype(_bits)>(size), extension_size_bits, extension_size_bits_offset);
 }
 
 Digit PhoneNumber::digit(uint32_t index) const noexcept {
     // TODO: better constants and static_assertions for packing
     const bool odd_index = is_odd(index);
     const size_t byte = index / 2;
-    return static_cast<Digit>(get_masked(packed_digits()[byte], 4, odd_index ? 4 : 0));
+    return static_cast<Digit>(get_masked(_data[byte], 4, odd_index ? 4 : 0));
 }
 
 void PhoneNumber::set_digit(uint32_t index, Digit digit) noexcept {
     const bool odd_index = is_odd(index);
     const size_t byte = index / 2;
-    auto digits = packed_digits();
-    digits[byte] = set_masked(digits[byte], static_cast<uint8_t>(digit), 4, odd_index ? 4 : 0);
+    _data[byte] = set_masked(_data[byte], static_cast<uint8_t>(digit), 4, odd_index ? 4 : 0);
 }
 
 Digit PhoneNumber::ext_digit(uint32_t index) const noexcept { return digit(index + size()); }

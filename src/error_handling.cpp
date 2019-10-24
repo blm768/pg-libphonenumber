@@ -14,6 +14,19 @@ extern "C" {
 using namespace i18n::phonenumbers;
 
 namespace {
+const PhoneNumberUtil* phoneUtil = PhoneNumberUtil::GetInstance();
+}
+
+PhoneNumberTooLongException::PhoneNumberTooLongException(const PhoneNumber& number, const char* msg) :
+    std::runtime_error(msg), _number(number){};
+
+std::string PhoneNumberTooLongException::number_string() const {
+    std::string formatted;
+    phoneUtil->Format(number(), PhoneNumberUtil::INTERNATIONAL, &formatted);
+    return formatted;
+}
+
+namespace {
 const char* getParseErrorMessage(PhoneNumberUtil::ErrorType error) {
     using PNU = i18n::phonenumbers::PhoneNumberUtil;
     switch (error) {

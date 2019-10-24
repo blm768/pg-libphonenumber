@@ -3,17 +3,10 @@
 using namespace google::protobuf;
 using namespace i18n::phonenumbers;
 
+#include "error_handling.h"
+
 namespace {
 const PhoneNumberUtil* phoneUtil = PhoneNumberUtil::GetInstance();
-}
-
-PhoneNumberTooLongException::PhoneNumberTooLongException(const PhoneNumber& number, const char* msg) :
-    std::runtime_error(msg), _number(number){};
-
-std::string PhoneNumberTooLongException::number_string() const {
-    std::string formatted;
-    phoneUtil->Format(number(), PhoneNumberUtil::INTERNATIONAL, &formatted);
-    return formatted;
 }
 
 PackedPhoneNumber::PackedPhoneNumber(const i18n::phonenumbers::PhoneNumber& number) {
